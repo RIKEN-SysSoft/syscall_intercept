@@ -1,0 +1,1 @@
+../../../test/asm_pattern.c

@@ -1,0 +1,1 @@
+../../../test/pattern_loop2.in.S

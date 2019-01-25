@@ -1,0 +1,1 @@
+../../../test/pattern_nop_padding3.in.S

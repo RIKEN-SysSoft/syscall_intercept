@@ -1,0 +1,1 @@
+../../../test/pattern_symbol_boundary0.out.S
