@@ -43,7 +43,9 @@
 .text
 
 text_start:
+#ifndef __aarch64__
 		mov     rax, 1
 		syscall
 		cmp     rax, -1
+#endif
 text_end:

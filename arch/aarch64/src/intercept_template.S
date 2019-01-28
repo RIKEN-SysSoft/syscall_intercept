@@ -63,6 +63,7 @@
  * needed for locals.
  */
 intercept_asm_wrapper_tmpl:
+#ifndef __aarch64__
 	movq        $0x0, %rcx /* choose intercept_routine */
 
 0:	movq        %rsp, %r11 /* remember original rsp */
@@ -70,10 +71,14 @@ intercept_asm_wrapper_tmpl:
 	andq        $-16, %rsp /* align the stack */
 	subq        $0x20, %rsp /* allocate stack for some locals */
 	movq        %r11, (%rsp) /* orignal rsp on stack */
+#endif
 intercept_asm_wrapper_patch_desc_addr:
+#ifndef __aarch64__
 	movabsq     $0x000000000000, %r11
 	movq        %r11, 0x8 (%rsp) /* patch_desc pointer on stack */
+#endif
 intercept_asm_wrapper_wrapper_level1_addr:
+#ifndef __aarch64__
 	movabsq     $0x000000000000, %r11
 	callq       *%r11 /* call intercept_wrapper */
 	movq        (%rsp), %rsp /* restore original rsp */
@@ -109,6 +114,7 @@ intercept_asm_wrapper_wrapper_level1_addr:
 2:
 	syscall
 3:
+#endif
 intercept_asm_wrapper_tmpl_end:
 	/*
 	 * This template must be appended here with a

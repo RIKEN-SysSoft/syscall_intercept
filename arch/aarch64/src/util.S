@@ -40,6 +40,7 @@
 .text
 
 has_ymm_registers:
+#ifndef __aarch64__
 	.cfi_startproc
 	pushq       %rbx
 	movq        $0x1, %rax
@@ -50,10 +51,12 @@ has_ymm_registers:
 	popq        %rbx
 	retq
 	.cfi_endproc
+#endif
 
 .size   has_ymm_registers, .-has_ymm_registers
 
 syscall_no_intercept:
+#ifndef __aarch64__
 	movq        %rdi, %rax  /* convert from linux ABI calling */
 	movq        %rsi, %rdi  /* convention to syscall calling convention */
 	movq        %rdx, %rsi
@@ -63,5 +66,6 @@ syscall_no_intercept:
 	movq        8(%rsp), %r9
 	syscall
 	ret
+#endif
 
 .size   syscall_no_intercept, .-syscall_no_intercept
