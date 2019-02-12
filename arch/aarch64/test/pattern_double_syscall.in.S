@@ -1,0 +1,1 @@
+../../../test/pattern_double_syscall.in.S

@@ -1,0 +1,1 @@
+../../../test/pattern4.out.S
