@@ -70,19 +70,6 @@ open_orig_file(const struct intercept_desc *desc)
 	return fd;
 }
 
-static void
-add_table_info(struct section_list *list, const Elf64_Shdr *header)
-{
-	size_t max = sizeof(list->headers) / sizeof(list->headers[0]);
-
-	if (list->count < max) {
-		list->headers[list->count] = *header;
-		list->count++;
-	} else {
-		xabort("allocated section_list exhausted");
-	}
-}
-
 /*
  * add_text_info -- Fill the appropriate fields in an intercept_desc struct
  * about the corresponding code text.
@@ -134,13 +121,6 @@ find_sections(struct intercept_desc *desc, int fd)
 		if (strcmp(name, ".text") == 0) {
 			text_section_found = true;
 			add_text_info(desc, section, i);
-		} else if (section->sh_type == SHT_SYMTAB ||
-		    section->sh_type == SHT_DYNSYM) {
-			debug_dump("found symbol table: %s\n", name);
-			add_table_info(&desc->symbol_tables, section);
-		} else if (section->sh_type == SHT_RELA) {
-			debug_dump("found relocation table: %s\n", name);
-			add_table_info(&desc->rela_tables, section);
 		}
 	}
 
