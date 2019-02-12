@@ -33,13 +33,16 @@
 # This only serves for testing syscall_intercept's ability to
 # patch syscalls in the main executable object of a process.
 
+#ifndef __aarch64__
 .intel_syntax noprefix
+#endif
 
 .global main;
 
 .text
 
 main:
+#ifndef __aarch64__
 		cmp     rdi, 2         # cmp argc with 2
 		jl      0f             # jump if argc < 2
 		add     rsi, 8         # inc argv
@@ -65,6 +68,7 @@ repne		scasb                  # scan memory to find null terminator
 		ret
 0:		mov     rax, 1         # return 1
 		ret
+#endif
 
 .data
 newline:	.byte 0xa

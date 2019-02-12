@@ -49,7 +49,9 @@
 # cases -- the only thing that matters, is to have these at predictable
 # addresses.
 
+#ifndef __aarch64__
 .intel_syntax noprefix
+#endif
 
 .global trampoline_table;
 .global trampoline_table_end;
@@ -57,6 +59,7 @@
 .data
 
 trampoline_table:
+#ifndef __aarch64__
 dst0:		jmp     [rip]
 		.space 8, 0
 dst1:		jmp     [rip]
@@ -105,4 +108,5 @@ dst22:		jmp     [rip]
 		.space 8, 0
 dst23:		jmp     [rip]
 		.space 8, 0
+#endif
 trampoline_table_end:

@@ -41,6 +41,7 @@
 .text
 
 text_start:
+#ifndef __aarch64__
 		jmp     dst0
 		int3
 		int3
@@ -50,4 +51,5 @@ text_start:
 		int3
 		int3
 		int3
+#endif
 text_end:

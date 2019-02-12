@@ -73,6 +73,7 @@
  * %rcx  -- which C function to call
  */
 intercept_wrapper:
+#ifndef __aarch64__
 	.cfi_startproc
 
 	/*
@@ -230,3 +231,4 @@ intercept_wrapper:
 
 	retq
 	.cfi_endproc
+#endif

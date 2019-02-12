@@ -33,7 +33,9 @@
 # A simple test, the text contains no syscall instructions, patching
 # is expected to alter no bytes whatsoever.
 
+#ifndef __aarch64__
 .intel_syntax noprefix
+#endif
 
 .global text_start;
 .global text_end;
@@ -45,6 +47,7 @@
 .text
 
 text_start:
+#ifndef __aarch64__
 fibonacci:
 		.cfi_startproc
 		.cfi_def_cfa_offset 0
@@ -54,4 +57,5 @@ fibonacci:
 		loop    .loop
 		ret
 		.cfi_endproc
+#endif
 text_end:
