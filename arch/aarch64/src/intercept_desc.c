@@ -161,42 +161,14 @@ allocate_jump_table(struct intercept_desc *desc)
 }
 
 /*
- * calculate_table_count - estimate the number of entries
- * that might be used for nop table.
- */
-static size_t
-calculate_table_count(const struct intercept_desc *desc)
-{
-	assert(desc->text_start < desc->text_end);
-
-	/* how large is the text segment? */
-	size_t bytes = (size_t)(desc->text_end - desc->text_start + 1);
-
-	/*
-	 * Guess: one entry per 64 bytes of machine code.
-	 * This would result in zero entries for 63 bytes of text segment,
-	 * so it is safer to have an absolute minimum. The 0x10000 value
-	 * is just an arbitrary value.
-	 * If more nops than this estimate are found (not likely), than the
-	 * code just continues without remembering those nops - this does
-	 * not break the patching process.
-	 */
-	if (bytes > 0x10000)
-		return bytes / 64;
-	else
-		return 1024;
-}
-
-/*
  * allocate_nop_table - allocates desc->nop_table
  */
 static void
 allocate_nop_table(struct intercept_desc *desc)
 {
-	desc->max_nop_count = calculate_table_count(desc);
+	desc->max_nop_count = 0;
 	desc->nop_count = 0;
-	desc->nop_table =
-	    xmmap_anon(desc->max_nop_count * sizeof(desc->nop_table[0]));
+	desc->nop_table = NULL;
 }
 
 /*
