@@ -43,12 +43,18 @@
 static const struct syscall_desc table[] = {
 	SARGS(read, rdec, arg_fd, arg_, arg_),
 	SARGS(write, rdec, arg_fd, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(open, rdec, arg_cstr, arg_open_flags, arg_mode),
+#endif
 	SARGS(close, rdec, arg_fd),
+#ifndef __aarch64__
 	SARGS(stat, rdec, arg_cstr, arg_),
+#endif
 	SARGS(fstat, rdec, arg_fd, arg_),
+#ifndef __aarch64__
 	SARGS(lstat, rdec, arg_cstr, arg_),
 	SARGS(poll, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(lseek, rdec, arg_fd, arg_, arg_),
 	SARGS(mmap, rhex, arg_, arg_, arg_, arg_, arg_fd, arg_),
 	SARGS(mprotect, rdec, arg_, arg_, arg_),
@@ -62,9 +68,11 @@ static const struct syscall_desc table[] = {
 	SARGS(pwrite64, rdec, arg_fd, arg_, arg_, arg_),
 	SARGS(readv, rdec, arg_fd, arg_, arg_),
 	SARGS(writev, rdec, arg_fd, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(access, rdec, arg_cstr, arg_mode),
 	SARGS(pipe, rdec, arg_),
 	SARGS(select, rdec, arg_, arg_, arg_, arg_, arg_),
+#endif
 	SARGS(sched_yield, rdec, arg_none),
 	SARGS(mremap, rhex, arg_, arg_, arg_, arg_, arg_),
 	SARGS(msync, rdec, arg_, arg_, arg_),
@@ -74,11 +82,15 @@ static const struct syscall_desc table[] = {
 	SARGS(shmat, rhex, arg_, arg_, arg_),
 	SARGS(shmctl, rdec, arg_, arg_, arg_),
 	SARGS(dup, rdec, arg_fd),
+#ifndef __aarch64__
 	SARGS(dup2, rdec, arg_fd, arg_fd),
 	SARGS(pause, rdec, arg_none),
+#endif
 	SARGS(nanosleep, rdec, arg_, arg_),
 	SARGS(getitimer, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(alarm, runsigned, arg_),
+#endif
 	SARGS(setitimer, rdec, arg_, arg_, arg_),
 	SARGS(getpid, rdec, arg_none),
 	SARGS(sendfile, rdec, arg_fd, arg_fd, arg_, arg_),
@@ -98,8 +110,10 @@ static const struct syscall_desc table[] = {
 	SARGS(setsockopt, rdec, arg_fd, arg_, arg_, arg_, arg_),
 	SARGS(getsockopt, rdec, arg_fd, arg_, arg_, arg_, arg_),
 	SARGS(clone, rdec, arg_, arg_, arg_, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(fork, rdec, arg_none),
 	SARGS(vfork, rdec, arg_none),
+#endif
 	SARGS(execve, rdec, arg_, arg_, arg_),
 	SARGS(exit, rnoreturn, arg_),
 	SARGS(wait4, rdec, arg_, arg_, arg_, arg_),
@@ -119,10 +133,13 @@ static const struct syscall_desc table[] = {
 	SARGS(fdatasync, rdec, arg_fd),
 	SARGS(truncate, rdec, arg_cstr, arg_),
 	SARGS(ftruncate, rdec, arg_fd, arg_),
+#ifndef __aarch64__
 	SARGS(getdents, rdec, arg_fd, arg_, arg_),
+#endif
 	SARGS(getcwd, rdec, arg_, arg_),
 	SARGS(chdir, rdec, arg_cstr),
 	SARGS(fchdir, rdec, arg_fd),
+#ifndef __aarch64__
 	SARGS(rename, rdec, arg_cstr, arg_cstr),
 	SARGS(mkdir, rdec, arg_cstr, arg_mode),
 	SARGS(rmdir, rdec, arg_cstr),
@@ -132,10 +149,15 @@ static const struct syscall_desc table[] = {
 	SARGS(symlink, rdec, arg_cstr, arg_cstr),
 	SARGS(readlink, rdec, arg_cstr, arg_, arg_),
 	SARGS(chmod, rdec, arg_cstr, arg_mode),
+#endif
 	SARGS(fchmod, rdec, arg_fd, arg_mode),
+#ifndef __aarch64__
 	SARGS(chown, rdec, arg_cstr, arg_, arg_),
+#endif
 	SARGS(fchown, rdec, arg_fd, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(lchown, rdec, arg_cstr, arg_, arg_),
+#endif
 	SARGS(umask, rmode, arg_mode),
 	SARGS(gettimeofday, rdec, arg_, arg_),
 	SARGS(getrlimit, rdec, arg_, arg_),
@@ -151,7 +173,9 @@ static const struct syscall_desc table[] = {
 	SARGS(geteuid, rdec, arg_none),
 	SARGS(getegid, rdec, arg_none),
 	SARGS(setpgid, rdec, arg_none),
+#ifndef __aarch64__
 	SARGS(getpgrp, rdec, arg_none),
+#endif
 	SARGS(setsid, rdec, arg_none),
 	SARGS(setreuid, rdec, arg_, arg_),
 	SARGS(setregid, rdec, arg_, arg_),
@@ -172,14 +196,20 @@ static const struct syscall_desc table[] = {
 	SARGS(rt_sigqueueinfo, rdec, arg_, arg_, arg_),
 	SARGS(rt_sigsuspend, rdec, arg_, arg_),
 	SARGS(sigaltstack, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(utime, rdec, arg_cstr, arg_),
 	SARGS(mknod, rdec, arg_cstr, arg_, arg_),
 	SARGS(uselib, rdec, arg_cstr),
+#endif
 	SARGS(personality, rdec, arg_),
+#ifndef __aarch64__
 	SARGS(ustat, rdec, arg_, arg_),
+#endif
 	SARGS(statfs, rdec, arg_cstr, arg_),
 	SARGS(fstatfs, rdec, arg_fd, arg_),
+#ifndef __aarch64__
 	SARGS(sysfs, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(getpriority, rdec, arg_, arg_),
 	SARGS(setpriority, rdec, arg_, arg_, arg_),
 	SARGS(sched_setparam, rdec, arg_, arg_),
@@ -194,11 +224,17 @@ static const struct syscall_desc table[] = {
 	SARGS(mlockall, rdec, arg_),
 	SARGS(munlockall, rdec, arg_none),
 	SARGS(vhangup, rdec, arg_none),
+#ifndef __aarch64__
 	SARGS(modify_ldt, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(pivot_root, rdec, arg_cstr, arg_),
+#ifndef __aarch64__
 	SARGS(_sysctl, rdec, arg_),
+#endif
 	SARGS(prctl, rdec, arg_, arg_, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(arch_prctl, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(adjtimex, rdec, arg_),
 	SARGS(setrlimit, rdec, arg_, arg_),
 	SARGS(chroot, rdec, arg_cstr),
@@ -212,8 +248,10 @@ static const struct syscall_desc table[] = {
 	SARGS(reboot, rdec, arg_, arg_, arg_, arg_),
 	SARGS(sethostname, rdec, arg_, arg_),
 	SARGS(setdomainname, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(iopl, rdec, arg_),
 	SARGS(ioperm, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(gettid, rdec, arg_none),
 	SARGS(readahead, rdec, arg_fd, arg_, arg_),
 	SARGS(setxattr, rdec, arg_cstr, arg_cstr, arg_, arg_, arg_),
@@ -229,19 +267,27 @@ static const struct syscall_desc table[] = {
 	SARGS(lremovexattr, rdec, arg_cstr, arg_cstr),
 	SARGS(fremovexattr, rdec, arg_fd, arg_cstr),
 	SARGS(tkill, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(time, rdec, arg_),
+#endif
 	SARGS(futex, rdec, arg_, arg_, arg_, arg_, arg_, arg_),
 	SARGS(sched_setaffinity, rdec, arg_, arg_, arg_),
 	SARGS(sched_getaffinity, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(set_thread_area, rdec, arg_),
+#endif
 	SARGS(io_setup, rdec, arg_, arg_),
 	SARGS(io_destroy, rdec, arg_),
 	SARGS(io_getevents, rdec, arg_, arg_, arg_, arg_, arg_),
 	SARGS(io_submit, rdec, arg_, arg_, arg_),
 	SARGS(io_cancel, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(get_thread_area, rdec, arg_),
+#endif
 	SARGS(lookup_dcookie, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(epoll_create, rdec, arg_),
+#endif
 	SARGS(getdents64, rdec, arg_fd, arg_, arg_),
 	SARGS(set_tid_address, rdec, arg_),
 	SARGS(semtimedop, rdec, arg_, arg_, arg_, arg_),
@@ -256,10 +302,14 @@ static const struct syscall_desc table[] = {
 	SARGS(clock_getres, rdec, arg_, arg_),
 	SARGS(clock_nanosleep, rdec, arg_, arg_, arg_, arg_),
 	SARGS(exit_group, rnoreturn, arg_),
+#ifndef __aarch64__
 	SARGS(epoll_wait, rdec, arg_fd, arg_, arg_, arg_),
+#endif
 	SARGS(epoll_ctl, rdec, arg_fd, arg_, arg_fd, arg_),
 	SARGS(tgkill, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(utimes, rdec, arg_cstr, arg_),
+#endif
 	SARGS(mbind, rdec, arg_, arg_, arg_, arg_, arg_),
 	SARGS(set_mempolicy, rdec, arg_, arg_, arg_),
 	SARGS(get_mempolicy, rdec, arg_, arg_, arg_, arg_, arg_),
@@ -276,7 +326,9 @@ static const struct syscall_desc table[] = {
 	SARGS(keyctl, rdec, arg_, arg_, arg_, arg_, arg_),
 	SARGS(ioprio_set, rdec, arg_, arg_, arg_),
 	SARGS(ioprio_get, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(inotify_init, rdec, arg_none),
+#endif
 	SARGS(inotify_add_watch, rdec, arg_fd, arg_cstr, arg_),
 	SARGS(inotify_rm_watch, rdec, arg_fd, arg_),
 	SARGS(migrate_pages, rdec, arg_, arg_, arg_, arg_),
@@ -284,7 +336,9 @@ static const struct syscall_desc table[] = {
 	SARGS(mkdirat, rdec, arg_atfd, arg_cstr, arg_mode),
 	SARGS(mknodat, rdec, arg_atfd, arg_cstr, arg_mode, arg_),
 	SARGS(fchownat, rdec, arg_atfd, arg_cstr, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(futimesat, rdec, arg_atfd, arg_cstr, arg_),
+#endif
 	SARGS(newfstatat, rdec, arg_atfd, arg_cstr, arg_, arg_),
 	SARGS(unlinkat, rdec, arg_atfd, arg_cstr, arg_),
 	SARGS(renameat, rdec, arg_atfd, arg_cstr, arg_atfd, arg_cstr),
@@ -305,9 +359,13 @@ static const struct syscall_desc table[] = {
 	SARGS(move_pages, rdec, arg_, arg_, arg_, arg_, arg_, arg_),
 	SARGS(utimensat, rdec, arg_atfd, arg_cstr, arg_, arg_),
 	SARGS(epoll_pwait, rdec, arg_fd, arg_, arg_, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(signalfd, rdec, arg_fd, arg_, arg_),
+#endif
 	SARGS(timerfd_create, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(eventfd, rdec, arg_),
+#endif
 	SARGS(fallocate, rdec, arg_fd, arg_, arg_, arg_),
 	SARGS(timerfd_settime, rdec, arg_fd, arg_, arg_, arg_),
 	SARGS(timerfd_gettime, rdec, arg_fd, arg_),
@@ -395,11 +453,13 @@ static const struct syscall_desc table[] = {
 
 #undef SARGS
 
+#ifndef __aarch64__
 static const struct syscall_desc open_without_mode = {
 	.name = "open",
 	.return_type = rdec,
 	.args = {arg_cstr, arg_open_flags, }
 };
+#endif
 
 static const struct syscall_desc openat_without_mode = {
 	.name = "openat",
@@ -416,8 +476,10 @@ get_syscall_desc(long syscall_number, const long args[6])
 	if ((size_t)syscall_number >= (sizeof(table) / sizeof(table[0])))
 		return NULL;
 
+#ifndef __aarch64__
 	if (syscall_number == SYS_open && (args[1] & O_CREAT) == 0)
 		return &open_without_mode;
+#endif
 
 	if (syscall_number == SYS_openat && (args[2] & O_CREAT) == 0)
 		return &openat_without_mode;

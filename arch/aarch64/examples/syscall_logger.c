@@ -849,8 +849,10 @@ start(void)
 	if (path == NULL)
 		syscall_no_intercept(SYS_exit_group, 3);
 
+#ifndef __aarch64__
 	log_fd = (int)syscall_no_intercept(SYS_open,
 			path, O_CREAT | O_RDWR, (mode_t)0700);
+#endif
 
 	if (log_fd < 0)
 		syscall_no_intercept(SYS_exit_group, 4);
