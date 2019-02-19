@@ -81,6 +81,10 @@
 
 #include <stdio.h>
 
+static void
+mprotect_no_intercept(void *addr, size_t len, int prot,
+		const char *msg_on_error);
+
 /* The size of a trampoline jump, jmp instruction + pointer */
 enum { TRAMPOLINE_SIZE = 6 + 8 };
 
@@ -91,9 +95,14 @@ round_down_address(unsigned char *address)
 }
 
 
-static unsigned char asm_wrapper_space[0x100000];
+static unsigned char
+__attribute__((section(".asm.wrapper")))
+__attribute__((aligned(0x10000)))
+asm_wrapper_space[0x100000];
 
+static unsigned char *asm_wrapper_space_begin;
 static unsigned char *next_asm_wrapper_space;
+static unsigned char *asm_wrapper_space_end;
 
 static void create_wrapper(struct patch_desc *patch);
 
@@ -219,13 +228,11 @@ static size_t tmpl_size;
 static ptrdiff_t o_patch_desc_addr;
 static ptrdiff_t o_wrapper_level1_addr;
 
-static bool
-is_asm_wrapper_space_full(void)
+static size_t
+get_asm_wrapper_free_size(void)
 {
-	return next_asm_wrapper_space + tmpl_size + 256 >
-			asm_wrapper_space + sizeof(asm_wrapper_space);
+	return (size_t)(asm_wrapper_space_end - next_asm_wrapper_space);
 }
-
 
 /*
  * init_patcher
@@ -246,7 +253,19 @@ init_patcher(void)
 		&intercept_asm_wrapper_tmpl_end);
 
 	tmpl_size = (size_t)(&intercept_asm_wrapper_tmpl_end - begin);
-	next_asm_wrapper_space = asm_wrapper_space + page_size;
+	asm_wrapper_space_begin = asm_wrapper_space;
+	next_asm_wrapper_space = asm_wrapper_space;
+	asm_wrapper_space_end = asm_wrapper_space + sizeof(asm_wrapper_space);
+	assert(((uintptr_t)asm_wrapper_space_end & (page_size - 1)) == 0);
+	asm_wrapper_space_end -= page_size;
+	/*
+	 * create asm wrapper guard page.
+	 * the guard page causes a segmentation fault upon any access.
+	 */
+	mprotect_no_intercept(asm_wrapper_space_end,
+			page_size,
+			PROT_NONE,
+			"mprotect_asm_wrappers PROT_NONE");
 	o_patch_desc_addr = &intercept_asm_wrapper_patch_desc_addr - begin;
 	o_wrapper_level1_addr =
 		&intercept_asm_wrapper_wrapper_level1_addr - begin;
@@ -267,9 +286,19 @@ create_wrapper(struct patch_desc *patch)
 	unsigned char *dst;
 	uintptr_t *patch_desc_addr;
 	uintptr_t *wrapper_level1_addr;
+	size_t remnant;
 
-	if (is_asm_wrapper_space_full())
-		xabort("not enough space in asm_wrapper_space");
+	remnant = get_asm_wrapper_free_size();
+	if (remnant < (tmpl_size + 256)) {
+		/* not using libc */
+		const char msg[] =
+			"libsyscall_intercept warning."
+			"asm wrapper space usage is likely to exceed the limit.\n";
+		syscall_no_intercept(SYS_write,
+				STDOUT_FILENO,
+				msg,
+				sizeof(msg) - 1);
+	}
 
 	/* Create a new copy of the template */
 	patch->asm_wrapper = dst = next_asm_wrapper_space;
@@ -371,8 +400,8 @@ void
 mprotect_asm_wrappers(void)
 {
 	mprotect_no_intercept(
-	    round_down_address(asm_wrapper_space + page_size),
-	    sizeof(asm_wrapper_space) - page_size,
-	    PROT_READ | PROT_EXEC,
-	    "mprotect_asm_wrappers PROT_READ | PROT_EXEC");
+		asm_wrapper_space_begin,
+		next_asm_wrapper_space - asm_wrapper_space_begin,
+		PROT_READ | PROT_EXEC,
+		"mprotect_asm_wrappers PROT_READ | PROT_EXEC");
 }
