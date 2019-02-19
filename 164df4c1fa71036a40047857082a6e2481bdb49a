@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6396cb67_f669edd5",
+        "filename": "arch/aarch64/src/intercept_desc.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-19T07:14:25Z",
+      "side": 1,
+      "message": "add comment, e.g. \"We don\u0027t need jump table\"",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 225,
+        "endChar": 13
+      },
+      "revId": "164df4c1fa71036a40047857082a6e2481bdb49a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c66b0d2_e3553dfc",
+        "filename": "arch/aarch64/src/intercept_desc.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-19T07:14:25Z",
+      "side": 1,
+      "message": "add comment, e.g. \"We don\u0027t need jump table\"",
+      "range": {
+        "startLine": 236,
+        "startChar": 0,
+        "endLine": 236,
+        "endChar": 13
+      },
+      "revId": "164df4c1fa71036a40047857082a6e2481bdb49a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
