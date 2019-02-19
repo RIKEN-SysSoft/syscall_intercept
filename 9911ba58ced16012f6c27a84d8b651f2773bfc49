@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "98113385_878c23a6",
+        "filename": "arch/aarch64/src/patcher.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-19T07:05:23Z",
+      "side": 1,
+      "message": "describe (1) what the function does and (2) return value here.",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 3
+      },
+      "revId": "9911ba58ced16012f6c27a84d8b651f2773bfc49",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
