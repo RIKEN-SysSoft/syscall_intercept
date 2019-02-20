@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0559ddf2_0b0a0955",
+        "filename": "arch/aarch64/src/intercept.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-20T05:18:35Z",
+      "side": 1,
+      "message": "armでは、svcがclobberするレジスタはないというABIである。\nそのため、全てのレジスタを保存復元する。",
+      "range": {
+        "startLine": 107,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 76
+      },
+      "revId": "c2d3b4c219e9de393831e99ee32f1b7781a0894a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
