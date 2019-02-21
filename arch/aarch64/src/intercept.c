@@ -1,5 +1,6 @@
 /*
  * Copyright 2016-2017, Intel Corporation
+ * intercept.c COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -626,10 +627,12 @@ intercept_routine(struct context *context)
 		    desc.args[5],
 		    &result);
 
+#ifndef __aarch64__
 	if (desc.nr == SYS_vfork || desc.nr == SYS_rt_sigreturn) {
 		/* can't handle these syscalls the normal way */
 		return (struct wrapper_ret){.rax = context->rax, .rdx = 0 };
 	}
+#endif
 
 	if (forward_to_kernel) {
 		/*

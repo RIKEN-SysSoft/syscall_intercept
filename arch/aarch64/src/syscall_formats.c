@@ -1,5 +1,6 @@
 /*
  * Copyright 2017, Intel Corporation
+ * syscall_formats.c COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,12 +44,18 @@
 static const struct syscall_format formats[] = {
 	SARGS(read, rdec, arg_fd, arg_buf_out, arg_dec),
 	SARGS(write, rdec, arg_fd, arg_buf_in, arg_dec),
+#ifndef __aarch64__
 	SARGS(open, rdec, arg_cstr, arg_open_flags),
+#endif
 	SARGS(close, rdec, arg_fd),
+#ifndef __aarch64__
 	SARGS(stat, rdec, arg_cstr, arg_pointer),
+#endif
 	SARGS(fstat, rdec, arg_fd, arg_pointer),
+#ifndef __aarch64__
 	SARGS(lstat, rdec, arg_cstr, arg_pointer),
 	SARGS(poll, rdec, arg_pointer, arg_, arg_),
+#endif
 	SARGS(lseek, rdec, arg_fd, arg_dec, arg_seek_whence),
 	SARGS(mmap, rpointer, arg_pointer, arg_, arg_, arg_, arg_fd, arg_),
 	SARGS(mprotect, rdec, arg_pointer, arg_, arg_),
@@ -62,9 +69,11 @@ static const struct syscall_format formats[] = {
 	SARGS(pwrite64, rdec, arg_fd, arg_buf_in, arg_dec, arg_dec),
 	SARGS(readv, rdec, arg_fd, arg_pointer, arg_dec),
 	SARGS(writev, rdec, arg_fd, arg_pointer, arg_dec),
+#ifndef __aarch64__
 	SARGS(access, rdec, arg_cstr, arg_access_mode),
 	SARGS(pipe, rdec, arg_2fds),
 	SARGS(select, rdec, arg_dec32, arg_pointer, arg_pointer, arg_pointer, arg_pointer),
+#endif
 	SARGS(sched_yield, rdec, arg_none),
 	SARGS(mremap, rpointer, arg_pointer, arg_dec, arg_dec, arg_dec32, arg_),
 	SARGS(msync, rdec, arg_pointer, arg_dec, arg_dec32),
@@ -74,11 +83,15 @@ static const struct syscall_format formats[] = {
 	SARGS(shmat, rhex, arg_, arg_, arg_),
 	SARGS(shmctl, rdec, arg_, arg_, arg_),
 	SARGS(dup, rdec, arg_fd),
+#ifndef __aarch64__
 	SARGS(dup2, rdec, arg_fd, arg_fd),
 	SARGS(pause, rdec, arg_none),
+#endif
 	SARGS(nanosleep, rdec, arg_, arg_),
 	SARGS(getitimer, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(alarm, rdec, arg_),
+#endif
 	SARGS(setitimer, rdec, arg_, arg_, arg_),
 	SARGS(getpid, rdec, arg_none),
 	SARGS(sendfile, rdec, arg_fd, arg_fd, arg_, arg_),
@@ -98,8 +111,10 @@ static const struct syscall_format formats[] = {
 	SARGS(setsockopt, rdec, arg_fd, arg_, arg_, arg_, arg_),
 	SARGS(getsockopt, rdec, arg_fd, arg_, arg_, arg_, arg_),
 	SARGS(clone, rdec, arg_clone_flags, arg_pointer, arg_pointer, arg_pointer, arg_),
+#ifndef __aarch64__
 	SARGS(fork, rdec, arg_none),
 	SARGS(vfork, rdec, arg_none),
+#endif
 	SARGS(execve, rdec, arg_, arg_, arg_),
 	SARGS(exit, rnoreturn, arg_),
 	SARGS(wait4, rdec, arg_dec, arg_, arg_, arg_),
@@ -119,10 +134,13 @@ static const struct syscall_format formats[] = {
 	SARGS(fdatasync, rdec, arg_fd),
 	SARGS(truncate, rdec, arg_cstr, arg_),
 	SARGS(ftruncate, rdec, arg_fd, arg_),
+#ifndef __aarch64__
 	SARGS(getdents, rdec, arg_fd, arg_, arg_),
+#endif
 	SARGS(getcwd, rdec, arg_, arg_),
 	SARGS(chdir, rdec, arg_cstr),
 	SARGS(fchdir, rdec, arg_fd),
+#ifndef __aarch64__
 	SARGS(rename, rdec, arg_cstr, arg_cstr),
 	SARGS(mkdir, rdec, arg_cstr, arg_oct_mode),
 	SARGS(rmdir, rdec, arg_cstr),
@@ -132,10 +150,15 @@ static const struct syscall_format formats[] = {
 	SARGS(symlink, rdec, arg_cstr, arg_cstr),
 	SARGS(readlink, rdec, arg_cstr, arg_buf_out, arg_dec),
 	SARGS(chmod, rdec, arg_cstr, arg_oct_mode),
+#endif
 	SARGS(fchmod, rdec, arg_fd, arg_oct_mode),
+#ifndef __aarch64__
 	SARGS(chown, rdec, arg_cstr, arg_, arg_),
+#endif
 	SARGS(fchown, rdec, arg_fd, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(lchown, rdec, arg_cstr, arg_, arg_),
+#endif
 	SARGS(umask, rmode, arg_oct_mode),
 	SARGS(gettimeofday, rdec, arg_, arg_),
 	SARGS(getrlimit, rdec, arg_, arg_),
@@ -151,7 +174,9 @@ static const struct syscall_format formats[] = {
 	SARGS(geteuid, rdec, arg_none),
 	SARGS(getegid, rdec, arg_none),
 	SARGS(setpgid, rdec, arg_none),
+#ifndef __aarch64__
 	SARGS(getpgrp, rdec, arg_none),
+#endif
 	SARGS(setsid, rdec, arg_none),
 	SARGS(setreuid, rdec, arg_, arg_),
 	SARGS(setregid, rdec, arg_, arg_),
@@ -172,14 +197,20 @@ static const struct syscall_format formats[] = {
 	SARGS(rt_sigqueueinfo, rdec, arg_, arg_, arg_),
 	SARGS(rt_sigsuspend, rdec, arg_, arg_),
 	SARGS(sigaltstack, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(utime, rdec, arg_cstr, arg_),
 	SARGS(mknod, rdec, arg_cstr, arg_, arg_),
 	SARGS(uselib, rdec, arg_cstr),
+#endif
 	SARGS(personality, rdec, arg_),
+#ifndef __aarch64__
 	SARGS(ustat, rdec, arg_, arg_),
+#endif
 	SARGS(statfs, rdec, arg_cstr, arg_),
 	SARGS(fstatfs, rdec, arg_fd, arg_),
+#ifndef __aarch64__
 	SARGS(sysfs, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(getpriority, rdec, arg_, arg_),
 	SARGS(setpriority, rdec, arg_, arg_, arg_),
 	SARGS(sched_setparam, rdec, arg_, arg_),
@@ -194,11 +225,17 @@ static const struct syscall_format formats[] = {
 	SARGS(mlockall, rdec, arg_),
 	SARGS(munlockall, rdec, arg_none),
 	SARGS(vhangup, rdec, arg_none),
+#ifndef __aarch64__
 	SARGS(modify_ldt, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(pivot_root, rdec, arg_cstr, arg_),
+#ifndef __aarch64__
 	SARGS(_sysctl, rdec, arg_),
+#endif
 	SARGS(prctl, rdec, arg_, arg_, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(arch_prctl, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(adjtimex, rdec, arg_),
 	SARGS(setrlimit, rdec, arg_, arg_),
 	SARGS(chroot, rdec, arg_cstr),
@@ -212,8 +249,10 @@ static const struct syscall_format formats[] = {
 	SARGS(reboot, rdec, arg_, arg_, arg_, arg_),
 	SARGS(sethostname, rdec, arg_, arg_),
 	SARGS(setdomainname, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(iopl, rdec, arg_),
 	SARGS(ioperm, rdec, arg_, arg_, arg_),
+#endif
 	SARGS(gettid, rdec, arg_none),
 	SARGS(readahead, rdec, arg_fd, arg_dec, arg_dec),
 	SARGS(setxattr, rdec, arg_cstr, arg_cstr, arg_buf_in, arg_dec, arg_),
@@ -229,19 +268,27 @@ static const struct syscall_format formats[] = {
 	SARGS(lremovexattr, rdec, arg_cstr, arg_cstr),
 	SARGS(fremovexattr, rdec, arg_fd, arg_cstr),
 	SARGS(tkill, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(time, rdec, arg_),
+#endif
 	SARGS(futex, rdec, arg_, arg_, arg_, arg_, arg_, arg_),
 	SARGS(sched_setaffinity, rdec, arg_, arg_, arg_),
 	SARGS(sched_getaffinity, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(set_thread_area, rdec, arg_),
+#endif
 	SARGS(io_setup, rdec, arg_, arg_),
 	SARGS(io_destroy, rdec, arg_),
 	SARGS(io_getevents, rdec, arg_, arg_, arg_, arg_, arg_),
 	SARGS(io_submit, rdec, arg_, arg_, arg_),
 	SARGS(io_cancel, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(get_thread_area, rdec, arg_),
+#endif
 	SARGS(lookup_dcookie, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(epoll_create, rdec, arg_),
+#endif
 	SARGS(getdents64, rdec, arg_fd, arg_, arg_),
 	SARGS(set_tid_address, rdec, arg_),
 	SARGS(semtimedop, rdec, arg_, arg_, arg_, arg_),
@@ -256,10 +303,14 @@ static const struct syscall_format formats[] = {
 	SARGS(clock_getres, rdec, arg_, arg_),
 	SARGS(clock_nanosleep, rdec, arg_, arg_, arg_, arg_),
 	SARGS(exit_group, rnoreturn, arg_),
+#ifndef __aarch64__
 	SARGS(epoll_wait, rdec, arg_fd, arg_, arg_, arg_),
+#endif
 	SARGS(epoll_ctl, rdec, arg_fd, arg_, arg_fd, arg_),
 	SARGS(tgkill, rdec, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(utimes, rdec, arg_cstr, arg_),
+#endif
 	SARGS(mbind, rdec, arg_, arg_, arg_, arg_, arg_),
 	SARGS(set_mempolicy, rdec, arg_, arg_, arg_),
 	SARGS(get_mempolicy, rdec, arg_, arg_, arg_, arg_, arg_),
@@ -276,7 +327,9 @@ static const struct syscall_format formats[] = {
 	SARGS(keyctl, rdec, arg_, arg_, arg_, arg_, arg_),
 	SARGS(ioprio_set, rdec, arg_, arg_, arg_),
 	SARGS(ioprio_get, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(inotify_init, rdec, arg_none),
+#endif
 	SARGS(inotify_add_watch, rdec, arg_fd, arg_cstr, arg_),
 	SARGS(inotify_rm_watch, rdec, arg_fd, arg_),
 	SARGS(migrate_pages, rdec, arg_, arg_, arg_, arg_),
@@ -284,7 +337,9 @@ static const struct syscall_format formats[] = {
 	SARGS(mkdirat, rdec, arg_atfd, arg_cstr, arg_oct_mode),
 	SARGS(mknodat, rdec, arg_atfd, arg_cstr, arg_oct_mode, arg_),
 	SARGS(fchownat, rdec, arg_atfd, arg_cstr, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(futimesat, rdec, arg_atfd, arg_cstr, arg_),
+#endif
 	SARGS(newfstatat, rdec, arg_atfd, arg_cstr, arg_, arg_),
 	SARGS(unlinkat, rdec, arg_atfd, arg_cstr, arg_),
 	SARGS(renameat, rdec, arg_atfd, arg_cstr, arg_atfd, arg_cstr),
@@ -305,9 +360,13 @@ static const struct syscall_format formats[] = {
 	SARGS(move_pages, rdec, arg_, arg_, arg_, arg_, arg_, arg_),
 	SARGS(utimensat, rdec, arg_atfd, arg_cstr, arg_, arg_),
 	SARGS(epoll_pwait, rdec, arg_fd, arg_, arg_, arg_, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(signalfd, rdec, arg_fd, arg_, arg_),
+#endif
 	SARGS(timerfd_create, rdec, arg_, arg_),
+#ifndef __aarch64__
 	SARGS(eventfd, rdec, arg_),
+#endif
 	SARGS(fallocate, rdec, arg_fd, arg_, arg_, arg_),
 	SARGS(timerfd_settime, rdec, arg_fd, arg_, arg_, arg_),
 	SARGS(timerfd_gettime, rdec, arg_fd, arg_),
@@ -396,8 +455,10 @@ static const struct syscall_format formats[] = {
 
 #undef SARGS
 
+#ifndef __aarch64__
 static struct syscall_format open_with_o_creat = {.name = "open", rdec,
 	{arg_cstr, arg_open_flags, arg_oct_mode}};
+#endif
 
 static struct syscall_format openat_with_o_creat = {.name = "openat", rdec,
 	{arg_atfd, arg_cstr, arg_open_flags, arg_oct_mode}};
@@ -450,8 +511,10 @@ get_syscall_format(const struct syscall_desc *desc)
 	if (formats[desc->nr].name == NULL)
 		return &unkown;
 
+#ifndef __aarch64__
 	if (desc->nr == SYS_open && oflags_refer_mode_arg((int)desc->args[1]))
 		return &open_with_o_creat;
+#endif
 
 	if (desc->nr == SYS_openat && oflags_refer_mode_arg((int)desc->args[2]))
 		return &openat_with_o_creat;
