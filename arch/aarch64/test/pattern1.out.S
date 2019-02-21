@@ -1,5 +1,6 @@
 #
 # Copyright 2017, Intel Corporation
+# pattern1.out.S COPYRIGHT FUJITSU LIMITED 2019
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +42,7 @@
 .text
 
 text_start:
+#ifndef __aarch64__
 		jmp     dst0
 		int3
 		int3
@@ -50,4 +52,5 @@ text_start:
 		int3
 		int3
 		int3
+#endif
 text_end:

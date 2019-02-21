@@ -1,5 +1,6 @@
 #
 # Copyright 2017, Intel Corporation
+# pattern1.in.S COPYRIGHT FUJITSU LIMITED 2019
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,7 +44,9 @@
 .text
 
 text_start:
+#ifndef __aarch64__
 		mov     rax, 1
 		syscall
 		cmp     rax, -1
+#endif
 text_end:

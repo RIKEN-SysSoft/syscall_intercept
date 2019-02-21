@@ -1,5 +1,6 @@
 #
 # Copyright 2017, Intel Corporation
+# nosyscall.out.S COPYRIGHT FUJITSU LIMITED 2019
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,7 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # see nosyscall.in.S
+#ifndef __aarch64__
 .intel_syntax noprefix
+#endif
 
 .global text_start;
 .global text_end;
@@ -42,6 +45,7 @@
 .text
 
 text_start:
+#ifndef __aarch64__
 fibonacci:
 		.cfi_startproc
 		.cfi_def_cfa_offset 0
@@ -51,4 +55,5 @@ fibonacci:
 		loop    .loop
 		ret
 		.cfi_endproc
+#endif
 text_end:
