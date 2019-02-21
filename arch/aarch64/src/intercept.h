@@ -1,5 +1,6 @@
 /*
  * Copyright 2016-2017, Intel Corporation
+ * intercept.h COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -227,7 +228,7 @@ void activate_patches(struct intercept_desc *desc);
 
 bool is_overwritable_nop(const struct intercept_disasm_result *ins);
 
-void create_jump(unsigned char opcode, unsigned char *from, void *to);
+unsigned char *create_jump(unsigned char *from, void *to);
 
 const char *cmdline;
 
