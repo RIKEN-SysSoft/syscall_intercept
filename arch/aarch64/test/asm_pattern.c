@@ -1,5 +1,6 @@
 /*
  * Copyright 2017, Intel Corporation
+ * asm_pattern.c COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,10 +46,96 @@
 #include <stdint.h>
 #include <dlfcn.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "libsyscall_intercept_hook_point.h"
 
 #include "intercept.h"
+
+struct find_sym_desc {
+	const char *name; /* symbol name to search */
+	void **ptr; /* address to pointer type to put result */
+};
+#define FIND_SYM_DESC_ENT(_name) {.name = #_name, .ptr = (void **)&_name##_ptr }
+
+/*
+ * find_symbol_addr - find the address of the desc[N].name
+ *                    in the ELF binary indicated by the path.
+ */
+static void
+find_symbol_addr(const char *path,
+			struct find_sym_desc *desc,
+			size_t nr_desc)
+{
+	int fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		fprintf(stderr,
+			"error file open: %s\n",
+			path);
+		exit(EXIT_FAILURE);
+	}
+
+	Elf64_Ehdr ehdr;
+	read(fd, &ehdr, sizeof(ehdr));
+
+	Elf64_Shdr shdrs[ehdr.e_shnum * sizeof(Elf64_Shdr)];
+	lseek(fd, ehdr.e_shoff, SEEK_SET);
+	read(fd, shdrs, sizeof(shdrs));
+
+	char section_string[shdrs[ehdr.e_shstrndx].sh_size];
+	lseek(fd, shdrs[ehdr.e_shstrndx].sh_offset, SEEK_SET);
+	read(fd, section_string, sizeof(section_string));
+
+	Elf64_Shdr *symtab = NULL;
+	Elf64_Shdr *strtab = NULL;
+	for (Elf64_Half i = 0; i < ehdr.e_shnum; ++i) {
+		Elf64_Shdr *shdr = &shdrs[i];
+		const char *shname = section_string + shdr->sh_name;
+		if (strcmp(".symtab", shname) == 0) {
+			symtab = shdr;
+		} else if (strcmp(".strtab", shname) == 0) {
+			strtab = shdr;
+		}
+	}
+	if (symtab == NULL) {
+		fprintf(stderr,
+			"error can not find .symtab: %s\n",
+			path);
+		exit(EXIT_FAILURE);
+	}
+	if (strtab == NULL) {
+		fprintf(stderr,
+			"error can not find .strtab: %s\n",
+			path);
+		exit(EXIT_FAILURE);
+	}
+
+	char symbol_string[strtab->sh_size];
+	lseek(fd, strtab->sh_offset, SEEK_SET);
+	read(fd, symbol_string, sizeof(symbol_string));
+
+	lseek(fd, symtab->sh_offset, SEEK_SET);
+	for (Elf64_Word size = 0;
+		size < symtab->sh_size;
+		size += sizeof(Elf64_Sym)) {
+		Elf64_Sym sym;
+		read(fd, &sym, sizeof(Elf64_Sym));
+		if (!sym.st_name) {
+			continue;
+		}
+
+		const char *symname = symbol_string + sym.st_name;
+		for (size_t i = 0; i < nr_desc; i++) {
+			if (strcmp(symname, desc[i].name) == 0) {
+				*desc[i].ptr = (void *)sym.st_value;
+				break;
+			}
+		}
+	}
+	close(fd);
+}
 
 /*
  * All test libraries are expected to provide the following symbols:
@@ -178,6 +265,17 @@ check_patch(const struct lib_data *in, const struct lib_data *out)
 int
 main(int argc, char **argv)
 {
+	unsigned char **asm_wrapper_space_begin_ptr = NULL;
+	unsigned char **next_asm_wrapper_space_ptr = NULL;
+	unsigned char **asm_wrapper_space_end_ptr = NULL;
+
+	struct find_sym_desc sym_desc[] = {
+		FIND_SYM_DESC_ENT(asm_wrapper_space_begin),
+		FIND_SYM_DESC_ENT(next_asm_wrapper_space),
+		FIND_SYM_DESC_ENT(asm_wrapper_space_end),
+	};
+	size_t nr_sym_desc = sizeof(sym_desc) / sizeof(sym_desc[0]);
+
 	if (argc < 3)
 		return EXIT_FAILURE;
 
@@ -201,6 +299,15 @@ main(int argc, char **argv)
 	 */
 	struct intercept_desc patches;
 	init_patcher();
+	find_symbol_addr(argv[0], sym_desc, nr_sym_desc);
+	for (size_t i = 0; i < nr_sym_desc; i++) {
+		if (*sym_desc[i].ptr == NULL) {
+			fprintf(stderr,
+				"symbol '%s' is not found.\n",
+				sym_desc[i].name);
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	/*
 	 * Some more information about the library to be patched, normally
