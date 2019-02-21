@@ -158,13 +158,7 @@ find_sections(struct intercept_desc *desc, int fd)
 static void
 allocate_jump_table(struct intercept_desc *desc)
 {
-	/* How many bytes need to be addressed? */
-	assert(desc->text_start < desc->text_end);
-	size_t bytes = (size_t)(desc->text_end - desc->text_start + 1);
-
-	/* Allocate 1 bit for each addressable byte */
-	/* Plus one -- integer division can result a number too low */
-	desc->jump_table = xmmap_anon(bytes / 8 + 1);
+	desc->jump_table = NULL;
 }
 
 /*
@@ -221,25 +215,6 @@ mark_nop(struct intercept_desc *desc, unsigned char *address, size_t size)
 }
 
 /*
- * is_bit_set - check a bit in a bitmap
- */
-static bool
-is_bit_set(const unsigned char *table, uint64_t offset)
-{
-	return table[offset / 8] & (1 << (offset % 8));
-}
-
-/*
- * set_bit - set a bit in a bitmap
- */
-static void
-set_bit(unsigned char *table, uint64_t offset)
-{
-	unsigned char tmp = (unsigned char)(1 << (offset % 8));
-	table[offset / 8] |= tmp;
-}
-
-/*
  * has_jump - check if addr is known to be a destination of any
  * jump ( or subroutine call ) in the code. The address must be
  * the one seen by the current process, not the offset in the original
@@ -248,11 +223,10 @@ set_bit(unsigned char *table, uint64_t offset)
 bool
 has_jump(const struct intercept_desc *desc, unsigned char *addr)
 {
-	if (addr >= desc->text_start && addr <= desc->text_end)
-		return is_bit_set(desc->jump_table,
-		    (uint64_t)(addr - desc->text_start));
-	else
-		return false;
+	/* aarch64 don't need jump table. */
+	(void) desc;
+	(void) addr;
+	return true;
 }
 
 /*
@@ -261,8 +235,9 @@ has_jump(const struct intercept_desc *desc, unsigned char *addr)
 void
 mark_jump(const struct intercept_desc *desc, const unsigned char *addr)
 {
-	if (addr >= desc->text_start && addr <= desc->text_end)
-		set_bit(desc->jump_table, (uint64_t)(addr - desc->text_start));
+	/* aarch64 don't need jump table. */
+	(void) desc;
+	(void) addr;
 }
 
 /*
