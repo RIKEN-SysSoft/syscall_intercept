@@ -1,5 +1,6 @@
 /*
  * Copyright 2016-2017, Intel Corporation
+ * intercept_log.c COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -830,7 +831,9 @@ intercept_setup_log(const char *path, const char *trunc)
 
 	intercept_log_close(); /* in case a log was already open */
 
+#ifndef __aarch64__
 	log_fd = (int)syscall_no_intercept(SYS_open, full_path, flags, 0700);
+#endif
 
 	xabort_on_syserror(log_fd, "opening log");
 }
