@@ -831,9 +831,8 @@ intercept_setup_log(const char *path, const char *trunc)
 
 	intercept_log_close(); /* in case a log was already open */
 
-#ifndef __aarch64__
-	log_fd = (int)syscall_no_intercept(SYS_open, full_path, flags, 0700);
-#endif
+	log_fd = (int)syscall_no_intercept(SYS_openat, AT_FDCWD,
+				full_path, flags, 0700);
 
 	xabort_on_syserror(log_fd, "opening log");
 }

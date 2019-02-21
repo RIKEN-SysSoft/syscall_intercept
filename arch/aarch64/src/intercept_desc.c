@@ -63,12 +63,8 @@ open_orig_file(const struct intercept_desc *desc)
 {
 	int fd;
 
-#ifndef __aarch64__
-	fd = syscall_no_intercept(SYS_open, desc->path, O_RDONLY);
-#else
-	(void) desc;
-	fd = -1;
-#endif
+	fd = syscall_no_intercept(SYS_openat, AT_FDCWD, desc->path, O_RDONLY);
+
 
 	xabort_on_syserror(fd, __func__);
 
@@ -567,12 +563,8 @@ get_min_address(void)
 
 	min_address = 0x10000; /* best guess */
 
-#ifndef __aarch64__
-	int fd = syscall_no_intercept(SYS_open, "/proc/sys/vm/mmap_min_addr",
-					O_RDONLY);
-#else
-	int fd = -1;
-#endif
+	int fd = syscall_no_intercept(SYS_openat, AT_FDCWD,
+					"/proc/sys/vm/mmap_min_addr", O_RDONLY);
 
 	if (fd >= 0) {
 		char line[64];
