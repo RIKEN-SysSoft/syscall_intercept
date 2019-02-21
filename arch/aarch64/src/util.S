@@ -31,30 +31,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.global has_ymm_registers;
-.hidden has_ymm_registers;
-.type   has_ymm_registers, @function
-
 .global syscall_no_intercept;
 .type   syscall_no_intercept, @function
 
 .text
-
-has_ymm_registers:
-#ifndef __aarch64__
-	.cfi_startproc
-	pushq       %rbx
-	movq        $0x1, %rax
-	cpuid
-	movq        %rcx, %rax
-	shrq        $28, %rax
-	andq        $1, %rax
-	popq        %rbx
-	retq
-	.cfi_endproc
-#endif
-
-.size   has_ymm_registers, .-has_ymm_registers
 
 syscall_no_intercept:
 	uxtw x8, w0 /* convert from linux ABI calling */
