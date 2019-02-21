@@ -81,21 +81,19 @@
 
 #include <stdio.h>
 
-#define PAGE_SIZE ((size_t)0x1000)
-
 /* The size of a trampoline jump, jmp instruction + pointer */
 enum { TRAMPOLINE_SIZE = 6 + 8 };
 
 static unsigned char *
 round_down_address(unsigned char *address)
 {
-	return (unsigned char *)(((uintptr_t)address) & ~(PAGE_SIZE - 1));
+	return (unsigned char *)(((uintptr_t)address) & ~(page_size - 1));
 }
 
 
 static unsigned char asm_wrapper_space[0x100000];
 
-static unsigned char *next_asm_wrapper_space = asm_wrapper_space + PAGE_SIZE;
+static unsigned char *next_asm_wrapper_space;
 
 static void create_wrapper(struct patch_desc *patch);
 
@@ -539,6 +537,7 @@ init_patcher(void)
 		&intercept_asm_wrapper_tmpl_end);
 
 	tmpl_size = (size_t)(&intercept_asm_wrapper_tmpl_end - begin);
+	next_asm_wrapper_space = asm_wrapper_space + page_size;
 	o_patch_desc_addr = &intercept_asm_wrapper_patch_desc_addr - begin;
 	o_wrapper_level1_addr =
 		&intercept_asm_wrapper_wrapper_level1_addr - begin;
@@ -755,8 +754,8 @@ void
 mprotect_asm_wrappers(void)
 {
 	mprotect_no_intercept(
-	    round_down_address(asm_wrapper_space + PAGE_SIZE),
-	    sizeof(asm_wrapper_space) - PAGE_SIZE,
+	    round_down_address(asm_wrapper_space + page_size),
+	    sizeof(asm_wrapper_space) - page_size,
 	    PROT_READ | PROT_EXEC,
 	    "mprotect_asm_wrappers PROT_READ | PROT_EXEC");
 }
