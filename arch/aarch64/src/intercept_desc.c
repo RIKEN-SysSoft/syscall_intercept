@@ -167,7 +167,7 @@ allocate_jump_table(struct intercept_desc *desc)
 static void
 allocate_nop_table(struct intercept_desc *desc)
 {
-	/* aarch64 don't need nop table. */
+	/* aarch64 doesn't need nop table. */
 	desc->max_nop_count = 0;
 	desc->nop_count = 0;
 	desc->nop_table = NULL;
@@ -196,7 +196,7 @@ mark_nop(struct intercept_desc *desc, unsigned char *address, size_t size)
 bool
 has_jump(const struct intercept_desc *desc, unsigned char *addr)
 {
-	/* aarch64 don't need jump table. */
+	/* aarch64 doesn't need jump table. */
 	(void) desc;
 	(void) addr;
 	return true;
@@ -208,7 +208,7 @@ has_jump(const struct intercept_desc *desc, unsigned char *addr)
 void
 mark_jump(const struct intercept_desc *desc, const unsigned char *addr)
 {
-	/* aarch64 don't need jump table. */
+	/* aarch64 doesn't need jump table. */
 	(void) desc;
 	(void) addr;
 }
@@ -538,10 +538,8 @@ get_min_address(void)
 void
 allocate_trampoline_table(struct intercept_desc *desc)
 {
-	char *e = getenv("INTERCEPT_NO_TRAMPOLINE");
-
-	/* Use the extra trampoline table by default */
-	desc->uses_trampoline_table = (e == NULL) || (e[0] == '0');
+	/* aarch64 doesn't use the extra trampoline table. */
+	desc->uses_trampoline_table = false;
 
 	if (!desc->uses_trampoline_table) {
 		desc->trampoline_table = NULL;
