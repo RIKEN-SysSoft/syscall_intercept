@@ -485,7 +485,7 @@ crawl_text(struct intercept_desc *desc)
 		result = intercept_disasm_next_instruction(context, code);
 
 		if (result.length == 0) {
-			++code;
+			code += INSTRUCTION_SIZE;
 			continue;
 		}
 
