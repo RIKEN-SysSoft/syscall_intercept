@@ -1,5 +1,6 @@
 /*
  * Copyright 2016-2017, Intel Corporation
+ * intercept_wrapper.S COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,6 +74,7 @@
  * %rcx  -- which C function to call
  */
 intercept_wrapper:
+#ifndef __aarch64__
 	.cfi_startproc
 
 	/*
@@ -230,3 +232,4 @@ intercept_wrapper:
 
 	retq
 	.cfi_endproc
+#endif

@@ -1,5 +1,6 @@
 /*
  * Copyright 2016-2017, Intel Corporation
+ * util.S COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +41,7 @@
 .text
 
 has_ymm_registers:
+#ifndef __aarch64__
 	.cfi_startproc
 	pushq       %rbx
 	movq        $0x1, %rax
@@ -50,10 +52,12 @@ has_ymm_registers:
 	popq        %rbx
 	retq
 	.cfi_endproc
+#endif
 
 .size   has_ymm_registers, .-has_ymm_registers
 
 syscall_no_intercept:
+#ifndef __aarch64__
 	movq        %rdi, %rax  /* convert from linux ABI calling */
 	movq        %rsi, %rdi  /* convention to syscall calling convention */
 	movq        %rdx, %rsi
@@ -63,5 +67,6 @@ syscall_no_intercept:
 	movq        8(%rsp), %r9
 	syscall
 	ret
+#endif
 
 .size   syscall_no_intercept, .-syscall_no_intercept
