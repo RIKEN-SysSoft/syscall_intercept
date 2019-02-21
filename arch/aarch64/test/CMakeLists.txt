@@ -50,36 +50,8 @@ target_link_libraries(asm_pattern
 	PRIVATE ${CMAKE_DL_LIBS} ${capstone_LDFLAGS})
 
 set(asm_patterns
+	pattern1
 	nosyscall)
-# ifndef __aarch64__
-#	pattern1
-#	pattern2
-#	pattern3
-#	pattern4
-#	pattern_loop
-#	pattern_loop2
-#	pattern_symbol_boundary0
-#	pattern_symbol_boundary1
-#	pattern_symbol_boundary2
-#	pattern_symbol_boundary3
-#	pattern_nop_padding0
-#	pattern_nop_padding1
-#	pattern_nop_padding2
-#	pattern_nop_padding3
-#	pattern_nop_padding4
-#	pattern_nop_padding5
-#	pattern_nop_padding6
-#	pattern_nop_padding7
-#	pattern_nop_padding8
-#	pattern_nop_padding9)
-# endif
-
-# ifndef __aarch64__
-#set(asm_patterns_failing
-#	pattern_double_syscall
-#	pattern_rets
-#	pattern_jmps)
-# endif
 
 macro(add_asm_test test_name failing)
 	add_library(${test_name}.in SHARED ${test_name}.in.S)
@@ -111,12 +83,6 @@ endmacro()
 foreach(name ${asm_patterns})
 	add_asm_test(${name} FALSE)
 endforeach()
-
-# ifndef __aarch64__
-#foreach(name ${asm_patterns_failing})
-#	add_asm_test(${name} TRUE)
-#endforeach()
-# endif
 
 set(CHECK_LOG_COMMON_ARGS
 	-DMATCH_SCRIPT=${PROJECT_SOURCE_DIR}/utils/match.pl
@@ -166,69 +132,6 @@ add_test(NAME "hook_with_static"
 	-DMATCH_FILE=${CMAKE_CURRENT_SOURCE_DIR}/libcintercept1.log.match
 	${CHECK_LOG_COMMON_ARGS})
 
-
-add_library(hook_test_clone_preload SHARED hook_test_clone_preload.c)
-target_link_libraries(hook_test_clone_preload PRIVATE syscall_intercept_shared)
-add_test(NAME "hook_clone"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DTEST_NAME=hook_clone
-	-DLIB_FILE=$<TARGET_FILE:hook_test_clone_preload>
-	-DTEST_PROG=$<TARGET_FILE:fork_logging>
-	-DTEST_PROG_ARG=${CMAKE_CURRENT_SOURCE_DIR}/fork_logging.c
-	-DMATCH_FILE=${CMAKE_CURRENT_SOURCE_DIR}/libcintercept0.log.match
-	-DHAS_SECOND_LOG=1
-	-DSECOND_MATCH_FILE=${CMAKE_CURRENT_SOURCE_DIR}/libcintercept0_child.log.match
-	${CHECK_LOG_COMMON_ARGS})
-
-add_executable(filter_test filter_test.c)
-target_link_libraries(filter_test PRIVATE syscall_intercept_shared)
-
-add_test(NAME "filter_none"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DTEST_PROG=$<TARGET_FILE:filter_test>
-	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
-set_tests_properties("filter_none"
-	PROPERTIES PASS_REGULAR_EXPRESSION "hooked - allowed")
-
-add_test(NAME "filter_positive"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DFILTER=$<TARGET_FILE_NAME:filter_test>
-	-DTEST_PROG=$<TARGET_FILE:filter_test>
-	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
-set_tests_properties("filter_positive"
-	PROPERTIES PASS_REGULAR_EXPRESSION "hooked - allowed")
-
-add_test(NAME "filter_negative"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DFILTER=non_matching_filter
-	-DTEST_PROG=$<TARGET_FILE:filter_test>
-	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
-set_tests_properties("filter_negative"
-	PROPERTIES PASS_REGULAR_EXPRESSION "disallowed")
-
-# the filter is a substring of the executable name
-add_test(NAME "filter_negative_substring0"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DFILTER_PLUS_ONECHAR=$<TARGET_FILE_NAME:filter_test>
-	-DTEST_PROG=$<TARGET_FILE:filter_test>
-	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
-set_tests_properties("filter_negative_substring0"
-	PROPERTIES PASS_REGULAR_EXPRESSION "disallowed")
-
-# the executable name is a substring of the filter
-add_test(NAME "filter_negative_substring1"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DFILTER=A$<TARGET_FILE_NAME:filter_test>
-	-DTEST_PROG=$<TARGET_FILE:filter_test>
-	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
-set_tests_properties("filter_negative_substring1"
-	PROPERTIES PASS_REGULAR_EXPRESSION "disallowed")
 
 add_executable(test_clone_thread test_clone_thread.c)
 target_link_libraries(test_clone_thread PRIVATE ${CMAKE_THREAD_LIBS_INIT})
@@ -293,28 +196,6 @@ add_test(NAME "prog_no_pie_intercept_libc_only"
 	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
 set_tests_properties("prog_no_pie_intercept_libc_only"
 	PROPERTIES PASS_REGULAR_EXPRESSION "original_syscall")
-
-add_test(NAME "prog_pie_intercept_all"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DINTERCEPT_ALL=1
-	-DTEST_PROG=$<TARGET_FILE:executable_with_syscall_pie>
-	-DLIB_FILE=$<TARGET_FILE:intercept_sys_write>
-	-DTEST_PROG_ARGS=original_syscall
-	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
-set_tests_properties("prog_pie_intercept_all"
-	PROPERTIES PASS_REGULAR_EXPRESSION "intercepted_call")
-
-add_test(NAME "prog_no_pie_intercept_all"
-	COMMAND ${CMAKE_COMMAND}
-	-DTEST_EXTRA_PRELOAD=${TEST_EXTRA_PRELOAD}
-	-DINTERCEPT_ALL=1
-	-DTEST_PROG=$<TARGET_FILE:executable_with_syscall_no_pie>
-	-DLIB_FILE=$<TARGET_FILE:intercept_sys_write>
-	-DTEST_PROG_ARGS=original_syscall
-	-P ${CMAKE_CURRENT_SOURCE_DIR}/check.cmake)
-set_tests_properties("prog_no_pie_intercept_all"
-	PROPERTIES PASS_REGULAR_EXPRESSION "intercepted_call")
 
 add_executable(vfork_logging vfork_logging.c)
 add_test(NAME "vfork_logging"
