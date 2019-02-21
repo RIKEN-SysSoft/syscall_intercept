@@ -643,12 +643,16 @@ intercept_routine(struct context *context)
 		    desc.args[5],
 		    &result);
 
-#ifndef __aarch64__
-	if (desc.nr == SYS_vfork || desc.nr == SYS_rt_sigreturn) {
+#ifdef SYS_vfork
+	if (desc.nr == SYS_vfork) {
 		/* can't handle these syscalls the normal way */
 		return (struct wrapper_ret){.x0 = context->x0, .x1 = 0 };
 	}
 #endif
+	if (desc.nr == SYS_rt_sigreturn) {
+		/* can't handle these syscalls the normal way */
+		return (struct wrapper_ret){.x0 = context->x0, .x1 = 0 };
+	}
 
 	if (forward_to_kernel) {
 		/*
