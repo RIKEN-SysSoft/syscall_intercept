@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79722bb4_3348ee69",
+        "filename": "arch/aarch64/src/intercept_desc.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2019-02-22T07:15:00Z",
+      "side": 1,
+      "message": "@Takagi-san the fact that this got fixed on this commit means the typo got added in a previous one, I don\u0027t really care though",
+      "revId": "fc8c58a823bf4f107eb0403acf6749b2d68bfec1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
