@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb37bd42_36c5fc61",
+        "filename": "arch/aarch64/src/patcher.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2019-02-22T07:44:42Z",
+      "side": 1,
+      "message": "Why go through the trouble of this xxx * 4 for the ranges?\nThe doc actually says ±128MiB so it might actually be clearest to write this in 128 * 1024 * 1024 - 1.\n\nI think you need to check that to and from are multiples of 4 separately anyway, which isn\u0027t done here (you just do delta / 4 so you will truncate the value but an xabort is safer..)",
+      "revId": "6350014fc40b42d61dbf326fe6fc2139f61325bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
