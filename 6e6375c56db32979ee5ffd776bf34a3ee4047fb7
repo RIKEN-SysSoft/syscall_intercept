@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66c4c40c_ad987145",
+        "filename": "arch/aarch64/src/intercept_wrapper.S",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2019-02-22T05:58:56Z",
+      "side": 1,
+      "message": "Please fix the comments here as well",
+      "revId": "6e6375c56db32979ee5ffd776bf34a3ee4047fb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca4b2ebe_e6c993ac",
+        "filename": "arch/aarch64/src/intercept_wrapper.S",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2019-02-22T05:58:56Z",
+      "side": 1,
+      "message": "If I understand this correctly, x5 is a pointer ot pa, but `struct context` does not poitn to pa?\n(Also is x31 the same as sp? I\u0027m not sure we\u0027re respecting the comment line 66 here)",
+      "revId": "6e6375c56db32979ee5ffd776bf34a3ee4047fb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
