@@ -16,6 +16,24 @@
       "revId": "6350014fc40b42d61dbf326fe6fc2139f61325bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c8afbbb_c8470d3a",
+        "filename": "arch/aarch64/src/patcher.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-26T09:11:25Z",
+      "side": 1,
+      "message": "I think it\u0027s okay because the expression above follows the offset calculation semantics of b instruction, i.e.\nbits(64) offset \u003d SignExtend(imm26:\u002700\u0027, 64);\n\nSee https://developer.arm.com/docs/ddi0596/b/base-instructions-alphabetic-order/b-branch",
+      "parentUuid": "cb37bd42_36c5fc61",
+      "revId": "6350014fc40b42d61dbf326fe6fc2139f61325bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
