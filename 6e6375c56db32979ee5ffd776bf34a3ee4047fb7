@@ -19,6 +19,47 @@
     },
     {
       "key": {
+        "uuid": "6b0ffa40_2f1274a0",
+        "filename": "arch/aarch64/src/intercept_wrapper.S",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-26T07:51:36Z",
+      "side": 1,
+      "message": "In my understanding:\n\nCallee saved:\n[sp,#(16 + 264)]: original value of fp, return address, to the generated asm wrapper\n# This follows the calling convention\n\nArguments received on stack:\n[sp,#(16 + 288)]: original value of rsp, pointer to a struct patch_desc instance\n\nLocals on stack (should match struct context):\n[sp,#(16 + 8)] -- [sp, #(16 + 255)] -- saved GPR (x0 - x31)",
+      "parentUuid": "66c4c40c_ad987145",
+      "revId": "6e6375c56db32979ee5ffd776bf34a3ee4047fb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5655735f_ddf61326",
+        "filename": "arch/aarch64/src/intercept_wrapper.S",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-26T07:51:36Z",
+      "side": 1,
+      "message": "Please move \"\t/* argument passed to intercept_routine */\" here.",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 42
+      },
+      "revId": "6e6375c56db32979ee5ffd776bf34a3ee4047fb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ca4b2ebe_e6c993ac",
         "filename": "arch/aarch64/src/intercept_wrapper.S",
         "patchSetId": 3
