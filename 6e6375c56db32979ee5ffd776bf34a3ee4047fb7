@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "0268b59a_fb5e0737",
+        "filename": "arch/aarch64/src/intercept_wrapper.S",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-27T06:17:23Z",
+      "side": 1,
+      "message": "Locals on stack (should match struct context):\n[sp,#16] --  patch_desc field of struct context\n[sp,#(16 + 8)] -- [sp, #(16 + 255)] -- saved GPR (x0 - x31)",
+      "parentUuid": "6b0ffa40_2f1274a0",
+      "revId": "6e6375c56db32979ee5ffd776bf34a3ee4047fb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5655735f_ddf61326",
         "filename": "arch/aarch64/src/intercept_wrapper.S",
         "patchSetId": 3
@@ -57,6 +75,30 @@
       "revId": "6e6375c56db32979ee5ffd776bf34a3ee4047fb7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91e6aa9f_4881189a",
+        "filename": "arch/aarch64/src/intercept_wrapper.S",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1014590
+      },
+      "writtenOn": "2019-02-27T06:17:23Z",
+      "side": 1,
+      "message": "The suggestion above is incorrect. I under stand it\u0027s setting patch_desc field of struct context.",
+      "parentUuid": "5655735f_ddf61326",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 42
+      },
+      "revId": "6e6375c56db32979ee5ffd776bf34a3ee4047fb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     },
     {
       "key": {
