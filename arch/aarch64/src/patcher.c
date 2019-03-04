@@ -313,27 +313,23 @@ static void
 check_surrounding_instructions(struct intercept_desc *desc,
 				struct patch_desc *patch)
 {
+	(void) desc;
 	patch->uses_prev_ins =
 	    is_relocateable_before_syscall(patch->preceding_ins) &&
-	    !is_overwritable_nop(&patch->preceding_ins) &&
-	    !has_jump(desc, patch->syscall_addr);
+	    !is_overwritable_nop(&patch->preceding_ins);
 
 	if (patch->uses_prev_ins) {
 		patch->uses_prev_ins_2 =
 		    patch->uses_prev_ins &&
 		    is_relocateable_before_syscall(patch->preceding_ins_2) &&
-		    !is_overwritable_nop(&patch->preceding_ins_2) &&
-		    !has_jump(desc, patch->syscall_addr
-			- patch->preceding_ins.length);
+		    !is_overwritable_nop(&patch->preceding_ins_2);
 	} else {
 		patch->uses_prev_ins_2 = false;
 	}
 
 	patch->uses_next_ins =
 	    is_relocateable_after_syscall(patch->following_ins) &&
-	    !is_overwritable_nop(&patch->following_ins) &&
-	    !has_jump(desc,
-		patch->syscall_addr + SYSCALL_INS_SIZE);
+	    !is_overwritable_nop(&patch->following_ins);
 }
 
 /*
@@ -489,8 +485,6 @@ create_patch_wrappers(struct intercept_desc *desc)
 				    " around syscal");
 			}
 		}
-
-		mark_jump(desc, patch->return_address);
 
 		create_wrapper(patch);
 	}
