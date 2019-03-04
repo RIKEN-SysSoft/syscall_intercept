@@ -1,5 +1,6 @@
 /*
  * Copyright 2016-2017, Intel Corporation
+ * patcher.c COPYRIGHT FUJITSU LIMITED 2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -132,32 +133,27 @@ create_absolute_jump(unsigned char *from, void *to)
 }
 
 /*
- * create_jump(opcode, from, to)
- * Create a 5 byte jmp/call instruction jumping to address to, by overwriting
- * code starting at address from.
+ * create_jump(from, to)
+ * Create a b instruction jumping to address to, by overwriting
+ * code at address from.
+ *
+ * Return the instruction address next to the created b instruction.
  */
-void
-create_jump(unsigned char opcode, unsigned char *from, void *to)
+unsigned char *
+create_jump(unsigned char *from, void *to)
 {
-	/*
-	 * The operand is the difference between the
-	 * instruction pointer pointing to the instruction
-	 * just after the call, and the to address.
-	 * Thus RIP seen by the call instruction is from + 5
-	 */
-	ptrdiff_t delta = ((unsigned char *)to) - (from + JUMP_INS_SIZE);
+	const ptrdiff_t range_min = (ptrdiff_t)-0x2000000 * 4;
+	const ptrdiff_t range_max = (ptrdiff_t)0x1FFFFFF * 4;
 
-	if (delta > ((ptrdiff_t)INT32_MAX) || delta < ((ptrdiff_t)INT32_MIN))
+	ptrdiff_t delta = (unsigned char *)to - from;
+	if (delta > range_max || delta < range_min || delta % 4)
 		xabort("create_jump distance check");
 
-	int32_t delta32 = (int32_t)delta;
-	unsigned char *d = (unsigned char *)&delta32;
+	int32_t imm26 = ((int32_t)delta / 4) & ((1 << 26) - 1);
+	int32_t b = (5 << 26) | imm26;
 
-	from[0] = opcode;
-	from[1] = d[0];
-	from[2] = d[1];
-	from[3] = d[2];
-	from[4] = d[3];
+	*(int32_t *)from = b;
+	return from + sizeof(b);
 }
 
 /*
@@ -561,28 +557,6 @@ init_patcher(void)
 }
 
 /*
- * create_movabs_r11
- * Generates a movabs instruction, that assigns a 64 bit constant to
- * the R11 register.
- */
-static void
-create_movabs_r11(unsigned char *code, uint64_t value)
-{
-	unsigned char *bytes = (unsigned char *)&value;
-
-	code[0] = 0x49; /* movabs opcode */
-	code[1] = 0xbb; /* specifiy r11 as destination */
-	code[2] = bytes[0];
-	code[3] = bytes[1];
-	code[4] = bytes[2];
-	code[5] = bytes[3];
-	code[6] = bytes[4];
-	code[7] = bytes[5];
-	code[8] = bytes[6];
-	code[9] = bytes[7];
-}
-
-/*
  * create_wrapper
  * Generates an assembly wrapper. Copies the template written in
  * intercept_template.s, and generates the instructions specific
@@ -595,6 +569,8 @@ static void
 create_wrapper(struct patch_desc *patch)
 {
 	unsigned char *dst;
+	uintptr_t *patch_desc_addr;
+	uintptr_t *wrapper_level1_addr;
 
 	if (is_asm_wrapper_space_full())
 		xabort("not enough space in asm_wrapper_space");
@@ -612,10 +588,13 @@ create_wrapper(struct patch_desc *patch)
 		dst += length;
 	}
 
+	patch_desc_addr = (void *)(dst + o_patch_desc_addr);
+	wrapper_level1_addr = (void *)(dst + o_wrapper_level1_addr);
+
 	memcpy(dst, intercept_asm_wrapper_tmpl, tmpl_size);
-	create_movabs_r11(dst + o_patch_desc_addr, (uintptr_t)patch);
-	create_movabs_r11(dst + o_wrapper_level1_addr,
-				(uintptr_t)&intercept_wrapper);
+	*patch_desc_addr = (uintptr_t)patch;
+	*wrapper_level1_addr = (uintptr_t)&intercept_wrapper;
+
 	dst += tmpl_size;
 
 	/* Copy the following instruction */
@@ -626,7 +605,7 @@ create_wrapper(struct patch_desc *patch)
 		dst += patch->following_ins.length;
 	}
 
-	dst = create_absolute_jump(dst, patch->return_address);
+	dst = create_jump(dst, patch->return_address);
 
 	next_asm_wrapper_space = dst;
 }
@@ -712,8 +691,8 @@ activate_patches(struct intercept_desc *desc)
 			check_trampoline_usage(desc);
 
 			/* jump - escape the text segment */
-			create_jump(JMP_OPCODE,
-				patch->dst_jmp_patch, desc->next_trampoline);
+			create_jump(patch->dst_jmp_patch,
+				desc->next_trampoline);
 
 			/* jump - escape the 2 GB range of the text segment */
 			create_absolute_jump(
@@ -721,8 +700,7 @@ activate_patches(struct intercept_desc *desc)
 
 			desc->next_trampoline += TRAMPOLINE_SIZE;
 		} else {
-			create_jump(JMP_OPCODE,
-				patch->dst_jmp_patch, patch->asm_wrapper);
+			create_jump(patch->dst_jmp_patch, patch->asm_wrapper);
 		}
 
 		if (patch->uses_nop_trampoline) {
