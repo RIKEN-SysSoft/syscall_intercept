@@ -190,7 +190,6 @@ struct intercept_desc {
 
 	struct patch_desc *items;
 	unsigned count;
-	unsigned char *jump_table;
 
 	size_t nop_count;
 	size_t max_nop_count;
@@ -203,7 +202,6 @@ struct intercept_desc {
 };
 
 bool has_jump(const struct intercept_desc *desc, unsigned char *addr);
-void mark_jump(const struct intercept_desc *desc, const unsigned char *addr);
 
 void allocate_trampoline_table(struct intercept_desc *desc);
 void find_syscalls(struct intercept_desc *desc);

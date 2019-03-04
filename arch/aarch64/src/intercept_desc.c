@@ -150,24 +150,6 @@ find_sections(struct intercept_desc *desc, int fd)
 }
 
 /*
- * allocate_jump_table
- *
- * Allocates a bitmap, where each bit represents a unique address in
- * the text section.
- */
-static void
-allocate_jump_table(struct intercept_desc *desc)
-{
-	/* How many bytes need to be addressed? */
-	assert(desc->text_start < desc->text_end);
-	size_t bytes = (size_t)(desc->text_end - desc->text_start + 1);
-
-	/* Allocate 1 bit for each addressable byte */
-	/* Plus one -- integer division can result a number too low */
-	desc->jump_table = xmmap_anon(bytes / 8 + 1);
-}
-
-/*
  * calculate_table_count - estimate the number of entries
  * that might be used for nop table.
  */
@@ -218,158 +200,6 @@ mark_nop(struct intercept_desc *desc, unsigned char *address, size_t size)
 	desc->nop_table[desc->nop_count].address = address;
 	desc->nop_table[desc->nop_count].size = size;
 	desc->nop_count++;
-}
-
-/*
- * is_bit_set - check a bit in a bitmap
- */
-static bool
-is_bit_set(const unsigned char *table, uint64_t offset)
-{
-	return table[offset / 8] & (1 << (offset % 8));
-}
-
-/*
- * set_bit - set a bit in a bitmap
- */
-static void
-set_bit(unsigned char *table, uint64_t offset)
-{
-	unsigned char tmp = (unsigned char)(1 << (offset % 8));
-	table[offset / 8] |= tmp;
-}
-
-/*
- * has_jump - check if addr is known to be a destination of any
- * jump ( or subroutine call ) in the code. The address must be
- * the one seen by the current process, not the offset in the original
- * ELF file.
- */
-bool
-has_jump(const struct intercept_desc *desc, unsigned char *addr)
-{
-	if (addr >= desc->text_start && addr <= desc->text_end)
-		return is_bit_set(desc->jump_table,
-		    (uint64_t)(addr - desc->text_start));
-	else
-		return false;
-}
-
-/*
- * mark_jump - Mark an address as a jump destination, see has_jump above.
- */
-void
-mark_jump(const struct intercept_desc *desc, const unsigned char *addr)
-{
-	if (addr >= desc->text_start && addr <= desc->text_end)
-		set_bit(desc->jump_table, (uint64_t)(addr - desc->text_start));
-}
-
-/*
- * find_jumps_in_section_syms
- *
- * Read the .symtab or .dynsym section, which stores an array of Elf64_Sym
- * structs. Some of these symbols are functions in the .text section,
- * thus their entry points are jump destinations.
- *
- * The st_value fields holds the virtual address of the symbol
- * relative to the base address.
- *
- * The format of the entries:
- *
- * typedef struct
- * {
- *   Elf64_Word	st_name;            Symbol name (string tbl index)
- *   unsigned char st_info;         Symbol type and binding
- *   unsigned char st_other;        Symbol visibility
- *   Elf64_Section st_shndx;        Section index
- *   Elf64_Addr	st_value;           Symbol value
- *   Elf64_Xword st_size;           Symbol size
- * } Elf64_Sym;
- *
- * The field st_value is offset of the symbol in the object file.
- */
-static void
-find_jumps_in_section_syms(struct intercept_desc *desc, Elf64_Shdr *section,
-				int fd)
-{
-	assert(section->sh_type == SHT_SYMTAB ||
-		section->sh_type == SHT_DYNSYM);
-
-	size_t sym_count = section->sh_size / sizeof(Elf64_Sym);
-
-	Elf64_Sym syms[sym_count];
-
-	xlseek(fd, section->sh_offset, SEEK_SET);
-	xread(fd, &syms, section->sh_size);
-
-	for (size_t i = 0; i < sym_count; ++i) {
-		if (ELF64_ST_TYPE(syms[i].st_info) != STT_FUNC)
-			continue; /* it is not a function */
-
-		if (syms[i].st_shndx != desc->text_section_index)
-			continue; /* it is not in the text section */
-
-		debug_dump("jump target: %lx\n",
-		    (unsigned long)syms[i].st_value);
-
-		unsigned char *address = desc->base_addr + syms[i].st_value;
-
-		/* a function entry point in .text, mark it */
-		mark_jump(desc, address);
-
-		/* a function's end in .text, mark it */
-		if (syms[i].st_size != 0)
-			mark_jump(desc, address + syms[i].st_size);
-	}
-}
-
-/*
- * find_jumps_in_section_rela - look for offsets in relocation entries
- *
- * The constant SHT_RELA refers to "Relocation entries with addends" -- see the
- * elf.h header file.
- *
- * The format of the entries:
- *
- * typedef struct
- * {
- *   Elf64_Addr	r_offset;      Address
- *   Elf64_Xword r_info;       Relocation type and symbol index
- *   Elf64_Sxword r_addend;    Addend
- * } Elf64_Rela;
- *
- */
-static void
-find_jumps_in_section_rela(struct intercept_desc *desc, Elf64_Shdr *section,
-				int fd)
-{
-	assert(section->sh_type == SHT_RELA);
-
-	size_t sym_count = section->sh_size / sizeof(Elf64_Rela);
-
-	Elf64_Rela syms[sym_count];
-
-	xlseek(fd, section->sh_offset, SEEK_SET);
-	xread(fd, &syms, section->sh_size);
-
-	for (size_t i = 0; i < sym_count; ++i) {
-		switch (ELF64_R_TYPE(syms[i].r_info)) {
-			case R_X86_64_RELATIVE:
-			case R_X86_64_RELATIVE64:
-				/* Relocation type: "Adjust by program base" */
-
-				debug_dump("jump target: %lx\n",
-				    (unsigned long)syms[i].r_addend);
-
-				unsigned char *address =
-				    desc->base_addr + syms[i].r_addend;
-
-				mark_jump(desc, address);
-
-				break;
-		}
-	}
 }
 
 /*
@@ -484,9 +314,6 @@ crawl_text(struct intercept_desc *desc)
 			++code;
 			continue;
 		}
-
-		if (result.has_ip_relative_opr)
-			mark_jump(desc, result.rip_ref_addr);
 
 		if (is_overwritable_nop(&result))
 			mark_nop(desc, code, result.length);
@@ -703,16 +530,7 @@ find_syscalls(struct intercept_desc *desc)
 	    desc->path,
 	    (uintptr_t)desc->text_start,
 	    (uintptr_t)desc->text_end);
-	allocate_jump_table(desc);
 	allocate_nop_table(desc);
-
-	for (Elf64_Half i = 0; i < desc->symbol_tables.count; ++i)
-		find_jumps_in_section_syms(desc,
-		    desc->symbol_tables.headers + i, fd);
-
-	for (Elf64_Half i = 0; i < desc->rela_tables.count; ++i)
-		find_jumps_in_section_rela(desc,
-		    desc->rela_tables.headers + i, fd);
 
 	syscall_no_intercept(SYS_close, fd);
 
