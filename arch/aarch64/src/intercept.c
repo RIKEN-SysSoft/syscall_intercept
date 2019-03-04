@@ -105,36 +105,50 @@ static void log_header(void);
 void __attribute__((noreturn)) xlongjmp(long rip, long rsp, long rax);
 
 /*
- * Kernel can clobber rcx and r11 while serving a syscall, those are ignored
- * The layout of this struct depends on the way the assembly wrapper saves
- * register on the stack.
- * Note: don't expect the SIMD array to be aligned for efficient use with
- * AVX instructions.
+ * Kernel clobbers no register while serving a syscall in aarch64.
+ * So the assembly wrapper (intercept_wrapper.S) must do the same.
+ * The layout of this struct depends on the way the
+ * assembly wrapper saves register on the stack.
  */
 struct context {
 	struct patch_desc *patch_desc;
-	long rip;
-	long r15;
-	long r14;
-	long r13;
-	long r12;
-	long r10;
-	long r9;
-	long r8;
-	long rsp;
-	long rbp;
-	long rdi;
-	long rsi;
-	long rbx;
-	long rdx;
-	long rax;
-	char padd[0x200 - 0x168]; /* see: stack layout in intercept_wrapper.s */
-	long SIMD[16][8]; /* 8 SSE, 8 AVX, or 16 AVX512 registers */
+	long x0;
+	long x1;
+	long x2;
+	long x3;
+	long x4;
+	long x5;
+	long x6;
+	long x7;
+	long x8;
+	long x9;
+	long x10;
+	long x11;
+	long x12;
+	long x13;
+	long x14;
+	long x15;
+	long x16;
+	long x17;
+	long x18;
+	long x19;
+	long x20;
+	long x21;
+	long x22;
+	long x23;
+	long x24;
+	long x25;
+	long x26;
+	long x27;
+	long x28;
+	long x29; /* fp */
+	long x30; /* lr */
+	long x31;
 };
 
 struct wrapper_ret {
-	long rax;
-	long rdx;
+	long x0;
+	long x1;
 };
 
 /* Should all objects be patched, or only libc and libpthread? */
@@ -562,13 +576,13 @@ xabort_on_syserror(long syscall_result, const char *msg)
 static void
 get_syscall_in_context(struct context *context, struct syscall_desc *sys)
 {
-	sys->nr = (int)context->rax; /* ignore higher 32 bits */
-	sys->args[0] = context->rdi;
-	sys->args[1] = context->rsi;
-	sys->args[2] = context->rdx;
-	sys->args[3] = context->r10;
-	sys->args[4] = context->r8;
-	sys->args[5] = context->r9;
+	sys->nr = (int)context->x8; /* ignore higher 32 bits */
+	sys->args[0] = context->x0;
+	sys->args[1] = context->x1;
+	sys->args[2] = context->x2;
+	sys->args[3] = context->x3;
+	sys->args[4] = context->x4;
+	sys->args[5] = context->x5;
 }
 
 /*
@@ -613,7 +627,7 @@ intercept_routine(struct context *context)
 	get_syscall_in_context(context, &desc);
 
 	if (handle_magic_syscalls(&desc, &result) == 0)
-		return (struct wrapper_ret){.rax = result, .rdx = 1 };
+		return (struct wrapper_ret){.x0 = result, .x1 = 1 };
 
 	intercept_log_syscall(patch, &desc, UNKNOWN, 0);
 
@@ -630,7 +644,7 @@ intercept_routine(struct context *context)
 #ifndef __aarch64__
 	if (desc.nr == SYS_vfork || desc.nr == SYS_rt_sigreturn) {
 		/* can't handle these syscalls the normal way */
-		return (struct wrapper_ret){.rax = context->rax, .rdx = 0 };
+		return (struct wrapper_ret){.x0 = context->x0, .x1 = 0 };
 	}
 #endif
 
@@ -649,7 +663,7 @@ intercept_routine(struct context *context)
 		 */
 		if (desc.nr == SYS_clone && desc.args[1] != 0)
 			return (struct wrapper_ret){
-				.rax = context->rax, .rdx = 2 };
+				.x0 = context->x0, .x1 = 2 };
 		else
 			result = syscall_no_intercept(desc.nr,
 					desc.args[0],
@@ -662,7 +676,7 @@ intercept_routine(struct context *context)
 
 	intercept_log_syscall(patch, &desc, KNOWN, result);
 
-	return (struct wrapper_ret){ .rax = result, .rdx = 1 };
+	return (struct wrapper_ret){ .x0 = result, .x1 = 1 };
 }
 
 /*
@@ -673,13 +687,13 @@ intercept_routine(struct context *context)
 struct wrapper_ret
 intercept_routine_post_clone(struct context *context)
 {
-	if (context->rax == 0) {
+	if (context->x0 == 0) {
 		if (intercept_hook_point_clone_child != NULL)
 			intercept_hook_point_clone_child();
 	} else {
 		if (intercept_hook_point_clone_parent != NULL)
-			intercept_hook_point_clone_parent(context->rax);
+			intercept_hook_point_clone_parent(context->x0);
 	}
 
-	return (struct wrapper_ret){.rax = context->rax, .rdx = 1 };
+	return (struct wrapper_ret){.x0 = context->x0, .x1 = 1 };
 }
