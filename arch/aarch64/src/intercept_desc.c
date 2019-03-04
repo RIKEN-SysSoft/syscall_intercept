@@ -150,59 +150,6 @@ find_sections(struct intercept_desc *desc, int fd)
 }
 
 /*
- * calculate_table_count - estimate the number of entries
- * that might be used for nop table.
- */
-static size_t
-calculate_table_count(const struct intercept_desc *desc)
-{
-	assert(desc->text_start < desc->text_end);
-
-	/* how large is the text segment? */
-	size_t bytes = (size_t)(desc->text_end - desc->text_start + 1);
-
-	/*
-	 * Guess: one entry per 64 bytes of machine code.
-	 * This would result in zero entries for 63 bytes of text segment,
-	 * so it is safer to have an absolute minimum. The 0x10000 value
-	 * is just an arbitrary value.
-	 * If more nops than this estimate are found (not likely), than the
-	 * code just continues without remembering those nops - this does
-	 * not break the patching process.
-	 */
-	if (bytes > 0x10000)
-		return bytes / 64;
-	else
-		return 1024;
-}
-
-/*
- * allocate_nop_table - allocates desc->nop_table
- */
-static void
-allocate_nop_table(struct intercept_desc *desc)
-{
-	desc->max_nop_count = calculate_table_count(desc);
-	desc->nop_count = 0;
-	desc->nop_table =
-	    xmmap_anon(desc->max_nop_count * sizeof(desc->nop_table[0]));
-}
-
-/*
- * mark_nop - mark an address in a text section as overwritable nop instruction
- */
-static void
-mark_nop(struct intercept_desc *desc, unsigned char *address, size_t size)
-{
-	if (desc->nop_count == desc->max_nop_count)
-		return;
-
-	desc->nop_table[desc->nop_count].address = address;
-	desc->nop_table[desc->nop_count].size = size;
-	desc->nop_count++;
-}
-
-/*
  * has_pow2_count
  * Checks if the positive number of patches in a struct intercept_desc
  * is a power of two or not.
@@ -314,9 +261,6 @@ crawl_text(struct intercept_desc *desc)
 			code += INSTRUCTION_SIZE;
 			continue;
 		}
-
-		if (is_overwritable_nop(&result))
-			mark_nop(desc, code, result.length);
 
 		/*
 		 * Generate a new patch description, if:
@@ -530,7 +474,6 @@ find_syscalls(struct intercept_desc *desc)
 	    desc->path,
 	    (uintptr_t)desc->text_start,
 	    (uintptr_t)desc->text_end);
-	allocate_nop_table(desc);
 
 	syscall_no_intercept(SYS_close, fd);
 
