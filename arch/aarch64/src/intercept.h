@@ -74,11 +74,6 @@ struct syscall_desc {
 	long args[6];
 };
 
-struct range {
-	unsigned char *address;
-	size_t size;
-};
-
 /*
  * The patch_list array stores some information on
  * whereabouts of patches made to glibc.
@@ -121,10 +116,6 @@ struct patch_desc {
 	bool uses_prev_ins_2;
 	bool uses_prev_ins;
 	bool uses_next_ins;
-
-	bool uses_nop_trampoline;
-
-	struct range nop_trampoline;
 };
 
 void patch_apply(struct patch_desc *patch);
@@ -190,10 +181,6 @@ struct intercept_desc {
 
 	struct patch_desc *items;
 	unsigned count;
-
-	size_t nop_count;
-	size_t max_nop_count;
-	struct range *nop_table;
 
 	unsigned char *trampoline_table;
 	size_t trampoline_table_size;
