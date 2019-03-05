@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8e0cbf3_73166aab",
+        "filename": "arch/aarch64/src/patcher.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2019-03-05T02:37:14Z",
+      "side": 1,
+      "message": "I think delta % 4 is not enough of a check, one could pass 11 and 15 for example.",
+      "revId": "a85fb47c20ade66075cc71805e46b05ed39d8f13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
