@@ -139,9 +139,8 @@ find_symbol_addr(const char *path,
 
 /*
  * All test libraries are expected to provide the following symbols:
- * trampoline_table - the mock trampoline table using while patching
- * trampoline_table_end - used to calculate the size
- *				of the mock trampoline table
+ * mock_asm_wrapper, mock_asm_wrapper_end - the mock asm wrapper space
+ *                                          using while patching
  * text_start, text_end - symbols that help this program find the
  *				text section of the shared object
  *
@@ -150,8 +149,8 @@ find_symbol_addr(const char *path,
  */
 struct lib_data {
 	Dl_info info;
-	unsigned char *mock_trampoline_table;
-	size_t mock_trampoline_table_size;
+	unsigned char *mock_asm_wrapper;
+	unsigned char *mock_asm_wrapper_end;
 	const unsigned char *text_start;
 	const unsigned char *text_end;
 	size_t text_size;
@@ -192,9 +191,9 @@ load_test_lib(const char *path)
 		exit(EXIT_FAILURE);
 	}
 
-	data.mock_trampoline_table = xdlsym(lib, "trampoline_table", path);
+	data.mock_asm_wrapper = xdlsym(lib, "mock_asm_wrapper", path);
 
-	if ((!dladdr(data.mock_trampoline_table, &data.info)) ||
+	if ((!dladdr(data.mock_asm_wrapper, &data.info)) ||
 	    (data.info.dli_fname == NULL) ||
 	    (data.info.dli_fbase == NULL)) {
 		fprintf(stderr,
@@ -203,16 +202,14 @@ load_test_lib(const char *path)
 		exit(EXIT_FAILURE);
 	}
 
-	unsigned char *end = xdlsym(lib, "trampoline_table_end", path);
+	data.mock_asm_wrapper_end = xdlsym(lib, "mock_asm_wrapper_end", path);
 
-	if (end <= data.mock_trampoline_table) {
+	if (data.mock_asm_wrapper_end <= data.mock_asm_wrapper) {
 		fprintf(stderr,
-		    "trampoline_table_end invalid in %s: \"%s\"\n",
+		    "mock_asm_wrapper invalid in %s: \"%s\"\n",
 		    path, dlerror());
 		exit(EXIT_FAILURE);
 	}
-
-	data.mock_trampoline_table_size = end - data.mock_trampoline_table;
 
 	data.text_start = xdlsym(lib, "text_start", path);
 	data.text_end = xdlsym(lib, "text_end", path);
@@ -308,6 +305,9 @@ main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	}
+	*asm_wrapper_space_begin_ptr = lib_in.mock_asm_wrapper;
+	*asm_wrapper_space_end_ptr = lib_in.mock_asm_wrapper_end;
+	*next_asm_wrapper_space_ptr = *asm_wrapper_space_begin_ptr;
 
 	/*
 	 * Some more information about the library to be patched, normally
@@ -315,9 +315,9 @@ main(int argc, char **argv)
 	 */
 	patches.base_addr = lib_in.info.dli_fbase;
 	patches.path = lib_in.info.dli_fname;
-	patches.uses_trampoline_table = true;
-	patches.trampoline_table = lib_in.mock_trampoline_table;
-	patches.trampoline_table_size = lib_in.mock_trampoline_table_size;
+	patches.uses_trampoline_table = false;
+	patches.trampoline_table = NULL;
+	patches.trampoline_table_size = 0;
 	patches.next_trampoline = patches.trampoline_table;
 
 	/* perform the actually patching */
