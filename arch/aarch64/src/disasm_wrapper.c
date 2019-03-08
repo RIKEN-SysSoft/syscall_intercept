@@ -178,13 +178,6 @@ intercept_disasm_next_instruction(struct intercept_disasm_context *context,
 	assert((result.length % INSTRUCTION_SIZE) == 0);
 
 	result.is_syscall = (context->insn->id == ARM64_INS_SVC);
-	result.is_call = false;
-	result.is_ret = false;
-	result.is_rel_jump = false;
-	result.is_indirect_jump = false;
-	result.is_jump = false;
-	result.is_nop = false;
-	result.has_ip_relative_opr = false;
 	result.is_set = true;
 
 	return result;

@@ -102,20 +102,6 @@ struct patch_desc {
 
 	/* the address to jump back to */
 	unsigned char *return_address;
-
-	/*
-	 * Describe up to three instructions surrounding the original
-	 * syscall instructions. Sometimes just overwritting the two
-	 * direct neighbors of the syscall is not enough, ( e.g. if
-	 * both the directly preceding, and the directly following are
-	 * single byte instruction, that only gives 4 bytes of space ).
-	 */
-	struct intercept_disasm_result preceding_ins_2;
-	struct intercept_disasm_result preceding_ins;
-	struct intercept_disasm_result following_ins;
-	bool uses_prev_ins_2;
-	bool uses_prev_ins;
-	bool uses_next_ins;
 };
 
 void patch_apply(struct patch_desc *patch);
