@@ -179,75 +179,6 @@ check_trampoline_usage(const struct intercept_desc *desc)
 }
 
 /*
- * is_relocateable_before_syscall
- * checks if an instruction found before a syscall instruction
- * can be relocated (and thus overwritten).
- */
-static bool
-is_relocateable_before_syscall(struct intercept_disasm_result ins)
-{
-	if (!ins.is_set)
-		return false;
-
-	return !(ins.has_ip_relative_opr ||
-	    ins.is_call ||
-	    ins.is_rel_jump ||
-	    ins.is_jump ||
-	    ins.is_ret ||
-	    ins.is_syscall);
-}
-
-/*
- * is_relocateable_after_syscall
- * checks if an instruction found before a syscall instruction
- * can be relocated (and thus overwritten).
- *
- * Notice: we allow relocation of ret instructions.
- */
-static bool
-is_relocateable_after_syscall(struct intercept_disasm_result ins)
-{
-	if (!ins.is_set)
-		return false;
-
-	return !(ins.has_ip_relative_opr ||
-	    ins.is_call ||
-	    ins.is_rel_jump ||
-	    ins.is_jump ||
-	    ins.is_syscall);
-}
-
-
-/*
- * check_surrounding_instructions
- * Sets up the following members in a patch_desc, based on
- * instruction being relocateable or not:
- * uses_prev_ins ; uses_prev_ins_2 ; uses_next_ins
- */
-static void
-check_surrounding_instructions(struct intercept_desc *desc,
-				struct patch_desc *patch)
-{
-	(void) desc;
-	patch->uses_prev_ins =
-	    is_relocateable_before_syscall(patch->preceding_ins) &&
-	    !is_overwritable_nop(&patch->preceding_ins);
-
-	if (patch->uses_prev_ins) {
-		patch->uses_prev_ins_2 =
-		    patch->uses_prev_ins &&
-		    is_relocateable_before_syscall(patch->preceding_ins_2) &&
-		    !is_overwritable_nop(&patch->preceding_ins_2);
-	} else {
-		patch->uses_prev_ins_2 = false;
-	}
-
-	patch->uses_next_ins =
-	    is_relocateable_after_syscall(patch->following_ins) &&
-	    !is_overwritable_nop(&patch->following_ins);
-}
-
-/*
  * create_patch_wrappers - create the custom assembly wrappers
  * around each syscall to be intercepted. Well, actually, the
  * function create_wrapper does that, so perhaps this function
@@ -267,106 +198,9 @@ create_patch_wrappers(struct intercept_desc *desc)
 {
 	for (unsigned patch_i = 0; patch_i < desc->count; ++patch_i) {
 		struct patch_desc *patch = desc->items + patch_i;
-
-		/*
-		 * No padding space is available, so check the
-		 * instructions surrounding the syscall instruction.
-		 * If they can be relocated, then they can be
-		 * overwritten. Of course some instructions depend
-		 * on the value of the RIP register, these can not
-		 * be relocated.
-		 */
-
-		check_surrounding_instructions(desc, patch);
-
-		/*
-		 * Count the number of overwritable bytes
-		 * in the variable length.
-		 * Sum up the bytes that can be overwritten.
-		 * The 2 bytes of the syscall instruction can
-		 * be overwritten definitely, so length starts
-		 * as SYSCALL_INS_SIZE ( 2 bytes ).
-		 */
-		unsigned length = SYSCALL_INS_SIZE;
-
 		patch->dst_jmp_patch = patch->syscall_addr;
-
-		/*
-		 * If the preceding instruction is relocatable,
-		 * add its length. Also, the the instruction right
-		 * before that.
-		 */
-		if (patch->uses_prev_ins) {
-			length += patch->preceding_ins.length;
-			patch->dst_jmp_patch -=
-			    patch->preceding_ins.length;
-
-			if (patch->uses_prev_ins_2) {
-				length += patch->preceding_ins_2.length;
-				patch->dst_jmp_patch -=
-				    patch->preceding_ins_2.length;
-			}
-		}
-
-		/*
-		 * If the following instruction is relocatable,
-		 * add its length. This also affects the return address.
-		 * Normally, the library would return to libc after
-		 * handling the syscall by jumping to instruction
-		 * right after the syscall. But if that instruction
-		 * is overwritten, the returning jump must jump to
-		 * the instruction after it.
-		 */
-		if (patch->uses_next_ins) {
-			length += patch->following_ins.length;
-
-			/*
-			 * Address of the syscall instruction
-			 * plus 2 bytes
-			 * plus the length of the following instruction
-			 *
-			 * adds up to:
-			 *
-			 * the address of the second instruction after
-			 * the syscall.
-			 */
-			patch->return_address = patch->syscall_addr +
-			    SYSCALL_INS_SIZE +
-			    patch->following_ins.length;
-		} else {
-			/*
-			 * Address of the syscall instruction
-			 * plus 2 bytes
-			 *
-			 * adds up to:
-			 *
-			 * the address of the first instruction after
-			 * the syscall ( just like in the case of
-			 * using padding bytes ).
-			 */
-			patch->return_address =
-				patch->syscall_addr + SYSCALL_INS_SIZE;
-		}
-
-		/*
-		 * If the length is at least 5, then a jump instruction
-		 * with a 32 bit displacement can fit.
-		 *
-		 * Otherwise give up
-		 */
-		if (length < JUMP_INS_SIZE) {
-			char buffer[0x1000];
-
-			int l = snprintf(buffer, sizeof(buffer),
-				"unintercepted syscall at: %s 0x%lx\n",
-				desc->path,
-				patch->syscall_offset);
-
-			intercept_log(buffer, (size_t)l);
-			xabort("not enough space for patching"
-			    " around syscal");
-		}
-
+		patch->return_address =
+			patch->syscall_addr + SYSCALL_INS_SIZE;
 		create_wrapper(patch);
 	}
 }
@@ -439,16 +273,6 @@ create_wrapper(struct patch_desc *patch)
 	/* Create a new copy of the template */
 	patch->asm_wrapper = dst = next_asm_wrapper_space;
 
-	/* Copy the previous instruction(s) */
-	if (patch->uses_prev_ins) {
-		size_t length = patch->preceding_ins.length;
-		if (patch->uses_prev_ins_2)
-			length += patch->preceding_ins_2.length;
-
-		memcpy(dst, patch->syscall_addr - length, length);
-		dst += length;
-	}
-
 	patch_desc_addr = (void *)(dst + o_patch_desc_addr);
 	wrapper_level1_addr = (void *)(dst + o_wrapper_level1_addr);
 
@@ -457,14 +281,6 @@ create_wrapper(struct patch_desc *patch)
 	*wrapper_level1_addr = (uintptr_t)&intercept_wrapper;
 
 	dst += tmpl_size;
-
-	/* Copy the following instruction */
-	if (patch->uses_next_ins) {
-		memcpy(dst,
-		    patch->syscall_addr + SYSCALL_INS_SIZE,
-		    patch->following_ins.length);
-		dst += patch->following_ins.length;
-	}
 
 	dst = create_jump(dst, patch->return_address);
 
@@ -535,14 +351,6 @@ activate_patches(struct intercept_desc *desc)
 			desc->next_trampoline += TRAMPOLINE_SIZE;
 		} else {
 			create_jump(patch->dst_jmp_patch, patch->asm_wrapper);
-		}
-
-		unsigned char *byte;
-
-		for (byte = patch->dst_jmp_patch + JUMP_INS_SIZE;
-			byte < patch->return_address;
-			++byte) {
-			*byte = INT3_OPCODE;
 		}
 	}
 

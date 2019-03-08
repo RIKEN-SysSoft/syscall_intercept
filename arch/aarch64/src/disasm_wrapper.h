@@ -56,45 +56,6 @@ struct intercept_disasm_result {
 
 	/* Length in bytes, zero if disasm was not successful. */
 	unsigned length;
-
-	/*
-	 * Flag marking instructions that have a RIP relative address
-	 * as an operand.
-	 */
-	bool has_ip_relative_opr;
-
-	/* call instruction */
-	bool is_call;
-
-	bool is_jump;
-
-	/*
-	 * The flag is_rel_jump marks any instruction that jumps, to
-	 * a relative address encoded in its operand.
-	 * This includes call as well.
-	 */
-	bool is_rel_jump;
-
-	bool is_indirect_jump;
-
-	bool is_ret;
-
-	bool is_nop;
-
-	/*
-	 * Optional fields:
-	 * The rip_disp field contains the displacement used in
-	 * instructions referring to RIP relative addresses.
-	 * The rip_ref_addr field contains the absolute address of
-	 * such a reference, computed based on the rip_disp.
-	 * These are only valid, when has_ip_relative_opr is true.
-	 */
-	int32_t rip_disp;
-	const unsigned char *rip_ref_addr;
-
-#ifndef NDEBUG
-	const char *mnemonic;
-#endif
 };
 
 struct intercept_disasm_context;

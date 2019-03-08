@@ -165,35 +165,6 @@ add_new_patch(struct intercept_desc *desc)
 }
 
 /*
- * is_overwritable_nop
- * Check if an instruction just disassembled is a NOP that can be
- * used for placing an extra jump instruction into it.
- * See the nop_trampoline usage in the patcher.c source file.
- * This instruction is usable only if it occupies at least seven bytes.
- * Two are needed for a short jump, and another 5 bytes for a trampoline
- * jump with 32 bit displacement.
- *
- * As in (where XXXX represents a 32 bit displacement):
- *                                Before      After
- *                                _______     _______
- * address of NOP instruction ->  | NOP |     | JMP | <- jumps to next
- *                                |     |     | +8  |     instruction
- *                                |     |     | JMP | <- 5 bytes of payload
- *                                |     |     |  X  |
- *                                |     |     |  X  |
- *                                |     |     |  X  |
- *                                |     |     |  X  |
- *                                |     |     |     |
- * address of next instruction -> -------     -------
- *
- */
-bool
-is_overwritable_nop(const struct intercept_disasm_result *ins)
-{
-	return ins->is_nop && ins->length >= 2 + 5;
-}
-
-/*
  * crawl_text
  * Crawl the text section, disassembling it all.
  * This routine collects information about potential addresses to patch.
@@ -214,21 +185,6 @@ static void
 crawl_text(struct intercept_desc *desc)
 {
 	unsigned char *code = desc->text_start;
-
-	/*
-	 * Remember the previous three instructions, while
-	 * disassembling the code instruction by instruction in the
-	 * while loop below.
-	 */
-	struct intercept_disasm_result prevs[3] = {{0, }};
-
-	/*
-	 * How many previous instructions were decoded before this one,
-	 * and stored in the prevs array. Usually three, except for the
-	 * beginning of the text section -- the first instruction naturally
-	 * has no previous instruction.
-	 */
-	unsigned has_prevs = 0;
 	struct intercept_disasm_context *context =
 	    intercept_disasm_init(desc->text_start, desc->text_end);
 
@@ -242,56 +198,16 @@ crawl_text(struct intercept_desc *desc)
 			continue;
 		}
 
-		/*
-		 * Generate a new patch description, if:
-		 * - Information is available about a syscalls place
-		 * - one following instruction
-		 * - two preceding instructions
-		 *
-		 * So this is done only if instruction in the previous
-		 * loop iteration was a syscall. Which means the currently
-		 * decoded instruction is the 'following' instruction -- as
-		 * in following the syscall.
-		 * The two instructions from two iterations ago, and three
-		 * iterations ago are going to be the two 'preceding'
-		 * instructions stored in the patch description. Other fields
-		 * of the struct patch_desc are not filled at this point yet.
-		 *
-		 * prevs[0]      ->     patch->preceding_ins_2
-		 * prevs[1]      ->     patch->preceding_ins
-		 * prevs[2]      ->     [syscall]
-		 * current ins.  ->     patch->following_ins
-		 *
-		 *
-		 * XXX -- this ignores the cases where the text section
-		 * starts, or ends with a syscall instruction, or indeed, if
-		 * the second instruction in the text section is a syscall.
-		 * These implausible edge cases don't seem to be very important
-		 * right now.
-		 */
-		if (has_prevs >= 1 && prevs[2].is_syscall) {
+		if (result.is_syscall) {
 			struct patch_desc *patch = add_new_patch(desc);
-
 			patch->containing_lib_path = desc->path;
-			patch->preceding_ins_2 = prevs[0];
-			patch->preceding_ins = prevs[1];
-			patch->following_ins = result;
-			patch->syscall_addr = code - SYSCALL_INS_SIZE;
+			patch->syscall_addr = code;
 
 			ptrdiff_t syscall_offset = patch->syscall_addr -
 			    (desc->text_start - desc->text_offset);
-
 			assert(syscall_offset >= 0);
-
 			patch->syscall_offset = (unsigned long)syscall_offset;
 		}
-
-		prevs[0] = prevs[1];
-		prevs[1] = prevs[2];
-		prevs[2] = result;
-		if (has_prevs < 2)
-			++has_prevs;
-
 		code += result.length;
 	}
 
