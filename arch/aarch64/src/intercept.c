@@ -449,6 +449,7 @@ analyze_object(struct dl_phdr_info *info, size_t size, void *data)
 }
 
 const char *cmdline;
+size_t page_size;
 
 /*
  * intercept - This is where the highest level logic of hotpatching
@@ -466,6 +467,7 @@ intercept(int argc, char **argv)
 {
 	(void) argc;
 	cmdline = argv[0];
+	page_size = (size_t)getauxval(AT_PAGESZ);
 
 	if (!syscall_hook_in_process_allowed())
 		return;
