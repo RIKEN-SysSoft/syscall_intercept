@@ -57,16 +57,15 @@ has_ymm_registers:
 .size   has_ymm_registers, .-has_ymm_registers
 
 syscall_no_intercept:
-#ifndef __aarch64__
-	movq        %rdi, %rax  /* convert from linux ABI calling */
-	movq        %rsi, %rdi  /* convention to syscall calling convention */
-	movq        %rdx, %rsi
-	movq        %rcx, %rdx
-	movq        %r8, %r10
-	movq        %r9, %r8
-	movq        8(%rsp), %r9
-	syscall
+	uxtw x8, w0 /* convert from linux ABI calling */
+	mov  x0, x1 /* convention to syscall calling convention */
+	mov  x1, x2
+	mov  x2, x3
+	mov  x3, x4
+	mov  x4, x5
+	mov  x5, x6
+	mov  x6, x7 /* following aarch64 glibc calling convention */
+	svc  #0x0
 	ret
-#endif
 
 .size   syscall_no_intercept, .-syscall_no_intercept
