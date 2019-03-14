@@ -222,6 +222,7 @@ intercept_disasm_next_instruction(struct intercept_disasm_context *context,
 	result.length = context->insn->size;
 
 	assert(result.length != 0);
+	assert((result.length % INSTRUCTION_SIZE) == 0);
 
 	result.is_syscall = (context->insn->id == X86_INS_SYSCALL);
 	result.is_call = (context->insn->id == X86_INS_CALL);

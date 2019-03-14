@@ -217,8 +217,9 @@ void mprotect_asm_wrappers(void);
  */
 void activate_patches(struct intercept_desc *desc);
 
-#define SYSCALL_INS_SIZE 2
-#define JUMP_INS_SIZE 5
+#define INSTRUCTION_SIZE 4
+#define SYSCALL_INS_SIZE INSTRUCTION_SIZE
+#define JUMP_INS_SIZE INSTRUCTION_SIZE
 #define CALL_OPCODE 0xe8
 #define JMP_OPCODE 0xe9
 #define SHORT_JMP_OPCODE 0xeb
