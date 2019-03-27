@@ -61,9 +61,6 @@
 #undef _FORTIFY_SOURCE
 #endif
 
-#ifndef __aarch64__
-#include <asm/prctl.h>
-#endif
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -87,9 +84,6 @@
 #include <sys/file.h>
 #include <sys/fsuid.h>
 #include <sys/inotify.h>
-#ifndef __aarch64__
-#include <sys/io.h>
-#endif
 #include <sys/ioctl.h>
 #include <sys/ipc.h>
 #include <sys/mman.h>
@@ -120,9 +114,6 @@
 #include <sys/xattr.h>
 #include <time.h>
 #include <unistd.h>
-#ifndef __aarch64__
-#include <ustat.h>
-#endif
 #include <utime.h>
 
 #include "libsyscall_intercept_hook_point.h"
@@ -286,15 +277,6 @@ main(int argc, char **argv)
 	pwritev(1, NULL, 4, 0x1000);
 
 	/* open, close */
-#ifndef __aarch64__
-	syscall(SYS_open, input[0], O_CREAT | O_RDWR | O_SYNC, 0321);
-	syscall(SYS_open, input[0], 0, 0321);
-	syscall(SYS_open, NULL, all_o_flags, 0777);
-	syscall(SYS_open, input[0], all_o_flags, 0777);
-	syscall(SYS_open, input[1], O_RDWR | O_NONBLOCK, 0111);
-	syscall(SYS_open, input[1], 0);
-	syscall(SYS_open, NULL, 0);
-#endif
 	openat(AT_FDCWD, input[0], O_CREAT | O_RDWR | O_SYNC, 0321);
 	openat(AT_FDCWD, input[0], 0, 0321);
 	openat(AT_FDCWD, NULL, all_o_flags, 0777);
@@ -396,7 +378,6 @@ main(int argc, char **argv)
 	pipe(fd2);
 	pipe2(fd2, 0);
 
-	select(2, p0, p1, p1, p0);
 	syscall(SYS_pselect6, 2, p0, p1, p0, p1, p0);
 
 	sched_yield();
@@ -474,9 +455,6 @@ main(int argc, char **argv)
 	truncate(input[0], 4);
 	ftruncate(3, 3);
 
-#ifndef __aarch64__
-	syscall(SYS_getdents, 4, p0, 1);
-#endif
 	syscall(SYS_getdents64, 4, p0, 1);
 
 	setup_buffers();
@@ -490,21 +468,9 @@ main(int argc, char **argv)
 	renameat(AT_FDCWD, input[0], 7, input[1]);
 	renameat(9, input[0], AT_FDCWD, input[1]);
 
-#ifndef __aarch64__
-	syscall(SYS_mkdir, input[0], 0644);
-#endif
 	syscall(SYS_mkdirat, AT_FDCWD, input[0], 0644);
 	mkdirat(33, input[0], 0644);
 	mkdirat(33, NULL, 0555);
-#ifndef __aarch64__
-	syscall(SYS_rmdir, input[0]);
-	syscall(SYS_rmdir, NULL);
-#endif
-
-#ifndef __aarch64__
-	/* libc implementations might translate creat to open with O_CREAT */
-	syscall(SYS_creat, input[0], 0644);
-#endif
 
 	link(input[0], input[1]);
 	linkat(1, input[0], 2, input[1], 0);
@@ -554,9 +520,6 @@ main(int argc, char **argv)
 
 	sysinfo(p0);
 
-	times(NULL);
-	times(p0);
-
 	getuid();
 	getgid();
 	setuid(123);
@@ -592,17 +555,9 @@ main(int argc, char **argv)
 	syscall(SYS_rt_sigsuspend, p0, 3);
 	syscall(SYS_sigaltstack, p0, p1);
 
-	utime(input[0], p0);
-	utimes(input[0], p0);
-	futimesat(4, input[0], p0);
-
 	mknod(input[0], 1, 2);
 	mknodat(1, input[0], 1, 2);
 	mknodat(AT_FDCWD, input[0], 1, 2);
-
-#ifndef __aarch64__
-	ustat(2, p0);
-#endif
 
 	statfs(input[0], p0);
 	fstatfs(4, p0);
@@ -621,21 +576,10 @@ main(int argc, char **argv)
 
 	vhangup();
 
-#ifndef __aarch64__
-	syscall(SYS_modify_ldt, 1, p0, 1);
-#endif
-
 	setup_buffers();
 	syscall(SYS_pivot_root, input[0], buffer[0]);
 
-#ifndef __aarch64__
-	syscall(SYS__sysctl, p0);
-#endif
-
 	prctl(PR_CAPBSET_DROP, 1, 2, 3, 4);
-#ifndef __aarch64__
-	syscall(SYS_arch_prctl, ARCH_SET_FS, p0);
-#endif
 
 	adjtimex(p0);
 
@@ -654,11 +598,6 @@ main(int argc, char **argv)
 
 	sethostname(input[0], len0);
 	setdomainname(input[0], len0);
-
-#ifndef __aarch64__
-	iopl(1);
-	ioperm(3, 4, 1);
-#endif
 
 	syscall(SYS_init_module, p0, 16, p1);
 	syscall(SYS_finit_module, 3, p0, 0);
@@ -691,16 +630,7 @@ main(int argc, char **argv)
 	syscall(SYS_tkill, 44, SIGSTOP);
 	syscall(SYS_tgkill, 44, 55, SIGSTOP);
 
-#ifndef __aarch64__
-	syscall(SYS_time, p0);
-#endif
-
 	syscall(SYS_futex, p0, FUTEX_WAKE, 7L, p0, p1, 1L);
-
-#ifndef __aarch64__
-	syscall(SYS_set_thread_area, p0);
-	syscall(SYS_get_thread_area, p0);
-#endif
 
 	syscall(SYS_io_setup, 1, p0);
 	syscall(SYS_io_destroy, 77);
@@ -713,9 +643,6 @@ main(int argc, char **argv)
 	epoll_create(7);
 	epoll_create1(0);
 	epoll_create1(EPOLL_CLOEXEC);
-#ifndef __aarch64__
-	syscall(SYS_epoll_wait, 2L, p0, 4L, 5L);
-#endif
 	syscall(SYS_epoll_pwait, 2L, p0, 4L, 5L, p1, 6L);
 	epoll_ctl(2L, 3L, 4L, p0);
 
@@ -784,18 +711,12 @@ main(int argc, char **argv)
 	sync_file_range(2, 3, 4, 0);
 	sync_file_range(2, 3, 4, SYNC_FILE_RANGE_WAIT_BEFORE);
 
-#ifndef __aarch64__
-	syscall(SYS_signalfd, 1, p0, 12);
-#endif
 	syscall(SYS_signalfd4, 1, p0, 13, SFD_NONBLOCK);
 
 	timerfd_create(CLOCK_REALTIME, TFD_CLOEXEC);
 	timerfd_settime(1, TFD_TIMER_ABSTIME, p0, p1);
 	timerfd_gettime(2, p0);
 
-#ifndef __aarch64__
-	syscall(SYS_eventfd, 45);
-#endif
 	syscall(SYS_eventfd2, 47, EFD_SEMAPHORE);
 
 	fallocate(1, FALLOC_FL_PUNCH_HOLE, 3, 4);
@@ -816,6 +737,9 @@ main(int argc, char **argv)
 	syscall(SYS_process_vm_writev, 1L, 2L, 3L, 4L, 5L, 6L);
 
 	syscall(SYS_kcmp, 1L, 2L, 3L, 4L, 5L);
+
+	syscall(SYS_exit, 0);
+	syscall(888, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5);
 
 	test_in_progress = false;
 	magic_syscall_stop_log();
