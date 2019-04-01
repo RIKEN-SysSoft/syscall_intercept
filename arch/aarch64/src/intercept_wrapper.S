@@ -59,12 +59,12 @@
  *  [sp + 0x10] -- struct context
  *
  * Arguments recieved on stack:
- *  [sp + 0x118] -- original value of fp(x29)
- *  [sp + 0x120] -- original value of lr(x30)
- *  [sp + 0x128] -- original value of x10
- *  [sp + 0x130] -- original value of x11
- *  [sp + 0x138] -- original value of sp
- *  [sp + 0x140] -- pointer to a struct patch_desc instance
+ *  [sp + 0x120] -- original value of fp(x29)
+ *  [sp + 0x128] -- original value of lr(x30)
+ *  [sp + 0x130] -- original value of x10
+ *  [sp + 0x138] -- original value of x11
+ *  [sp + 0x140] -- original value of sp
+ *  [sp + 0x148] -- pointer to a struct patch_desc instance
  *
  * A pointer to these saved register is passed to intercept_routine, so the
  * layout of `struct context` must match this part of the stack layout.
@@ -73,7 +73,7 @@
  * x10  -- which C function to call
  */
 intercept_wrapper:
-	stp  x29, x30, [sp, #-(16 + (8 + 8 * 32))]! /* allocate stack for stack frame and locals */
+	stp  x29, x30, [sp, #-(16 + (8 + 8 * 32) + 8)]! /* allocate stack for stack frame and locals */
 
 	stp  x0, x1, [sp, #(16 + (8 + 8 * 0))]
 	stp  x2, x3, [sp, #(16 + (8 + 8 * 2))]
@@ -81,9 +81,9 @@ intercept_wrapper:
 	stp  x6, x7, [sp, #(16 + (8 + 8 * 6))]
 	stp  x8, x9, [sp, #(16 + (8 + 8 * 8))]
 
-	ldp  x0, x1, [sp, #(16 + (8 + 8 * 32) + 0x00)]  /* fetch original value of x29,x30 */
-	ldp  x2, x3, [sp, #(16 + (8 + 8 * 32) + 0x10)]  /* fetch original value of x10,x11 */
-	ldp  x4, x5, [sp, #(16 + (8 + 8 * 32) + 0x20)]  /* fetch original value of sp, pointer to patch_desc */
+	ldp  x0, x1, [sp, #(16 + (8 + 8 * 32) + 8 + 0x00)]  /* fetch original value of x29,x30 */
+	ldp  x2, x3, [sp, #(16 + (8 + 8 * 32) + 8 + 0x10)]  /* fetch original value of x10,x11 */
+	ldp  x4, x5, [sp, #(16 + (8 + 8 * 32) + 8 + 0x20)]  /* fetch original value of sp, pointer to patch_desc */
 
 	stp   x2,  x3, [sp, #(16 + (8 + 8 * 10))]
 	stp  x12, x13, [sp, #(16 + (8 + 8 * 12))]
@@ -138,5 +138,5 @@ intercept_wrapper:
 	ldp  x26, x27, [sp, #(16 + (8 + 8 * 26))]
 	ldr  x28,      [sp, #(16 + (8 + 8 * 28))]
 
-	ldp  x29, x30, [sp], #(16 + (8 + 8 * 32))
+	ldp  x29, x30, [sp], #(16 + (8 + 8 * 32) + 8)
 	ret
