@@ -153,6 +153,7 @@ set_target_properties(syscall_intercept_shared syscall_intercept_static
 	PROPERTIES
 	LINKER_LANGUAGE C
 	PUBLIC_HEADER "include/libsyscall_intercept_hook_point.h"
+	INSTALL_RPATH_USE_LINK_PATH TRUE
 	OUTPUT_NAME syscall_intercept)
 
 add_dependencies(syscall_intercept_base_c cpp_test)
