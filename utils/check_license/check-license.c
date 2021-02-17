@@ -282,7 +282,7 @@ create_pattern(const char *path_license, char *pattern)
 		return -1;
 
 	memset(pattern, 0, LICENSE_MAX_LEN);
-	strncpy(pattern, license, strlen(license) + 1);
+	strncpy(pattern, license, LICENSE_MAX_LEN);
 
 	return 0;
 }
