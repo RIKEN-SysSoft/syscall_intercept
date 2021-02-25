@@ -82,7 +82,15 @@ set(SOURCES_ASM
 
 
 include_directories(include)
-link_directories(${capstone_LIBRARY_DIRS})
+if(capstone_SUBMODULE)
+	if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+		include_directories(${CMAKE_CURRENT_SOURCE_DIR}/capstone/include)
+	elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+		include_directories(${CMAKE_CURRENT_SOURCE_DIR}/capstone/include/capstone)
+	endif()
+else()
+	link_directories(${capstone_LIBRARY_DIRS})
+endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -137,11 +145,21 @@ add_dependencies(syscall_intercept_static generate_syscall_intercept_scoped)
 set_target_properties(syscall_intercept_base_c
 		PROPERTIES C_VISIBILITY_PRESET hidden)
 
-target_link_libraries(syscall_intercept_shared
-	PRIVATE ${CMAKE_DL_LIBS} ${capstone_LIBRARIES})
+if(capstone_SUBMODULE)
+	target_link_libraries(syscall_intercept_shared
+		PRIVATE ${CMAKE_DL_LIBS} capstone-shared)
+else()
+	target_link_libraries(syscall_intercept_shared
+		PRIVATE ${CMAKE_DL_LIBS} ${capstone_LIBRARIES})
+endif()
 
-target_link_libraries(syscall_intercept_static
-	INTERFACE ${CMAKE_DL_LIBS} ${capstone_LIBRARIES})
+if(capstone_SUBMODULE)
+	target_link_libraries(syscall_intercept_static
+		INTERFACE ${CMAKE_DL_LIBS} capstone-shared)
+else()
+	target_link_libraries(syscall_intercept_static
+		INTERFACE ${CMAKE_DL_LIBS} ${capstone_LIBRARIES})
+endif()
 
 set_target_properties(syscall_intercept_shared
 	PROPERTIES VERSION ${SYSCALL_INTERCEPT_VERSION}

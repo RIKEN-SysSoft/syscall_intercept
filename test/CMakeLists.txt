@@ -45,8 +45,13 @@ add_executable(asm_pattern asm_pattern.c
 		$<TARGET_OBJECTS:syscall_intercept_base_c>
 		$<TARGET_OBJECTS:syscall_intercept_base_asm>)
 
-target_link_libraries(asm_pattern
-	PRIVATE ${CMAKE_DL_LIBS} ${capstone_LDFLAGS})
+if(capstone_SUBMODULE)
+	target_link_libraries(asm_pattern
+		PRIVATE ${CMAKE_DL_LIBS} capstone-shared)
+else()
+	target_link_libraries(asm_pattern
+		PRIVATE ${CMAKE_DL_LIBS} ${capstone_LDFLAGS})
+endif()
 
 set(asm_patterns
 	nosyscall
