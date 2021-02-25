@@ -58,7 +58,7 @@ if(NOT capstone_FOUND)
 		message(FATAL_ERROR "error: capstone: git checkout ${CAPSTONE_VERSION} failed")
 	endif()
 
-	if(CAPSTONE_VERSION VERSION_EQUAL 3.0.5)
+	if(CAPSTONE_VERSION STREQUAL "3.0.5")
 		execute_process(COMMAND bash -c "cd ${CMAKE_CURRENT_SOURCE_DIR}/capstone && patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/capstone.patch"
 			OUTPUT_VARIABLE PATCH_STDOUT OUTPUT_STRIP_TRAILING_WHITESPACE)
 		if(NOT "${PATCH_STDOUT}" MATCHES "^patching")
