@@ -211,12 +211,23 @@ endif()
 
 configure_file(libsyscall_intercept.pc.in libsyscall_intercept.pc)
 
-install(TARGETS syscall_intercept_shared syscall_intercept_static
-	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+# install only shared library on submodule build
+if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR )
+	option(SUBMOUDLE_BUILD "submodule build" ON)
+endif()
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libsyscall_intercept.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(TARGETS syscall_intercept_shared
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+if (NOT SUBMOUDLE_BUILD)
+	install(TARGETS syscall_intercept_static
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+	install(PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libsyscall_intercept.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+	add_subdirectory(doc)
+endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake"
@@ -224,7 +235,6 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
 add_custom_target(uninstall
 	"${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake") 
 
-add_subdirectory(doc)
 
 
 if(AUTO_RUN_CTAGS)
